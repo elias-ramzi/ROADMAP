@@ -5,7 +5,7 @@ class CustomCalculator(accuracy_calculator.AccuracyCalculator):
 
     def recall_at_k(self, knn_labels, query_labels, k):
         recall = (query_labels == knn_labels[:, :k])
-        return recall.any(1).mean()
+        return recall.any(1).float().mean().item()
 
     def calculate_recall_at_1(self, knn_labels, query_labels, **kwargs):
         return self.recall_at_k(knn_labels, query_labels[:, None], 1)
@@ -37,4 +37,4 @@ def get_accuracy_calculator(exclude_ranks=None):
     if exclude_ranks:
         for r in exclude_ranks:
             exclude.append(f'recall_at_{r}')
-    return CustomCalculator(exclude=exclude_ranks)
+    return CustomCalculator(exclude=exclude, k=2047)

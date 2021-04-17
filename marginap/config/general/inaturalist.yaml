@@ -1,0 +1,11 @@
+# @package _group_
+sampler:
+  MPerClassSampler:
+    batch_size: 128
+    samples_per_class: 4
+
+max_iter: 90
+val_bs: 96
+val_freq: 5
+num_workers: 10
+freeze_batch_norm: True

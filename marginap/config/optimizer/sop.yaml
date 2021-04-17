@@ -1,0 +1,14 @@
+# @package _group_
+optimizer:
+  Adam:
+    backbone:
+      lr: 0.00001
+      weight_decay: 0.0001
+    fc:
+      lr: 0.00001
+      weight_decay: 0.0001
+
+scheduler:
+  MultiStepLR:
+    milestones: [30, 70]
+    gamma: 0.3

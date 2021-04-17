@@ -1,0 +1,3 @@
+# @package _group_
+INaturalistDataset:
+  data_dir: /local/DEEPLEARNING/image_retrieval/inaturalist

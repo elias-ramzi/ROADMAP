@@ -1,0 +1,7 @@
+# @package _group_
+losses:
+  MarginAP:
+    mu: 0.05
+    tau: 0.05
+
+weights: {}

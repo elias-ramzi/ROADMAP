@@ -32,7 +32,7 @@ def rank_upper_bound(tens, theta, mu_n, tau_p):
 
 
 class SmoothRankAP(nn.Module):
-    def __init__(self, rank_approximation, return_type='1-mAP'):
+    def __init__(self):
         super().__init__()
 
     def forward(self, scores, target):
@@ -68,22 +68,31 @@ class SmoothRankAP(nn.Module):
             return 1 - ap
         else:
             loss = 1 - ap.mean()
-            return loss, {"aploss": loss.mean()}
+            return loss
 
 
 class SmoothAP(SmoothRankAP):
 
     def __init__(self, temp, return_type='1-mAP'):
         super().__init__()
+        self.temp = temp
         assert return_type in ["1-mAP", "1-AP", "AP"]
         self.rank_approximation = partial(tau_sigmoid, temp=temp)
         self.return_type = return_type
 
+    def extra_repr(self,):
+        return f"temp={self.temp}"
 
-class MarinAP(SmoothRankAP):
+
+class MarginAP(SmoothRankAP):
 
     def __init__(self, mu, tau, return_type='1-mAP'):
         super().__init__()
+        self.mu = mu
+        self.tau = tau
         assert return_type in ["1-mAP", "1-AP", "AP"]
         self.rank_approximation = partial(rank_upper_bound, theta=1.0, mu_n=mu, tau_p=tau)
         self.return_type = return_type
+
+    def extra_repr(self,):
+        return f"mu={self.mu}, tau={self.tau}"

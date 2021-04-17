@@ -1,4 +1,4 @@
-def get_hms(seconds: int) -> str:
+def format_time(seconds: int) -> str:
     """format time"""
     seconds = int(seconds)
     minutes = seconds // 60

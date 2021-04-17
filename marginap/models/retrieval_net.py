@@ -75,8 +75,9 @@ class RetrievalNet(nn.Module):
             self.standardize = nn.LayerNorm(out_features, elementwise_affine=False)
 
         if not self.without_fc:
-            logging.info("Not using a linear projection layer")
             self.fc = nn.Linear(out_features, embed_dim)
+        else:
+            logging.info("Not using a linear projection layer")
 
     def forward(self, X):
         X = self.backbone(X)

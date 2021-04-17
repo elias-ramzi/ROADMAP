@@ -1,0 +1,5 @@
+# @package _group_
+experiment_name: ???
+log_dir: ~/experiments/neurips
+seed: ???
+resume: null

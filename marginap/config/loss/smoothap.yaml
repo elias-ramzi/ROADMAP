@@ -1,0 +1,6 @@
+# @package _group_
+losses:
+  SmoothAP:
+    temp: 0.01
+
+weights: {}

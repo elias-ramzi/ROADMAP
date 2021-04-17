@@ -1,0 +1,8 @@
+ipython
+jupyter
+ipdb
+autopep8
+flake8
+pylint
+isort
+jedi==0.17.1

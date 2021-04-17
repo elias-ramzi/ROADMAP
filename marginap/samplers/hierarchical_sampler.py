@@ -11,7 +11,7 @@ def safe_random_choice(input_data, size):
 
 # Inspired by
 # https://github.com/kunhe/Deep-Metric-Learning-Baselines/blob/master/datasets.py
-class CategoriesSampler(BatchSampler):
+class HierarchicalSampler(BatchSampler):
     def __init__(
         self,
         dataset,
@@ -43,7 +43,7 @@ class CategoriesSampler(BatchSampler):
             self.samples_per_class = None
 
         self.super_image_lists = dataset.super_dict.copy()
-        self.super_pairs = list(itertools.combinations(set(dataset.super_classes), nb_categories))
+        self.super_pairs = list(itertools.combinations(set(dataset.super_labels), nb_categories))
         self.reshuffle()
 
     def __iter__(self,):

@@ -11,3 +11,5 @@ dist/
 
 tmp
 personal_experiment
+.idea
+outputs

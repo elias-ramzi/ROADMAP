@@ -1,0 +1,3 @@
+# @package _group_
+SOPDataset:
+  data_dir: /local/DEEPLEARNING/image_retrieval/Stanford_Online_Products

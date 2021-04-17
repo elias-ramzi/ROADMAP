@@ -12,28 +12,29 @@ def _batch_optimization(
     create_label,
 ):
     di = net(batch["image"].cuda())
+    scores = torch.mm(di, di.t())
+    label_matrix = lib.create_label_matrix(batch["label"]).cuda()
 
-    if compute_similarity:
-        similarities = torch.mm(di, di.t())
-    else:
-        similarities = di
+    logs = {}
+    losses = []
+    for crit, weight in criterion:
+        if hasattr(criterion, "paths_needed"):
+            loss = crit(scores, label_matrix, batch["path"])
+        else:
+            loss = crit(scores, label_matrix)
 
-    if create_label:
-        labels = lib.create_label_matrix(batch["label"]).cuda()
-    else:
-        labels = batch["label"].view(-1).cuda()
+        logs[crit.__class__.__name__] = loss.item()
+        losses.append(weight * loss)
 
-    if hasattr(criterion, "paths_needed"):
-        loss = criterion(similarities, labels, batch["path"])
-    else:
-        loss = criterion(similarities, labels)
-
-    loss.backward()
-    loss.detach_()
-    return {criterion.__class__.__name__: loss.item()}
+    total_loss = sum(losses)
+    total_loss.backward()
+    logs["total_loss"] = total_loss.item()
+    _ = [loss.detach_() for loss in losses]
+    total_loss.detach_()
+    return logs
 
 
-def criterion_update(
+def base_update(
     net,
     loader,
     criterion,
@@ -56,12 +57,14 @@ def criterion_update(
 
         optimizer.step()
         optimizer.zero_grad()
-        criterion.zero_grad()
+        _ = [crit.zero_grad() for crit, w in criterion]
 
         if scheduler is not None:
             scheduler.step()
 
         meter.update(logs)
         iterator.set_postfix({k: f"{v:0.4f}" for k, v in meter.avg.items()})
+
+        break
 
     return meter.avg

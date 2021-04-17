@@ -1,0 +1,6 @@
+# @package _group_
+RetrievalNet:
+  backbone_name: resnet50
+  embed_dim: 512
+  norm_features: False
+  without_fc: False
