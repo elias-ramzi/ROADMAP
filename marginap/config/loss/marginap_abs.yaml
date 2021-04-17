@@ -1,0 +1,13 @@
+# @package _group_
+losses:
+  MarginAP:
+    mu: 0.05
+    tau: 0.05
+
+  ContrastiveLoss:
+    pos_margin: 1.0
+    neg_margin: 0.5
+
+weights:
+  MarginAP: 1.0
+  ContrastiveLoss: 0.01

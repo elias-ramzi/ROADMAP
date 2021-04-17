@@ -57,14 +57,6 @@ def run(cfg):
     test_dts = getter.get_dataset(test_transform, 'test', cfg.dataset)
     sampler = getter.get_sampler(train_dts, cfg.general.sampler)
 
-    def get_dataloader():
-        return DataLoader(
-            train_dts,
-            batch_sampler=sampler,
-            num_workers=cfg.general.num_workers,
-            pin_memory=True
-        )
-
     tester = eng.get_tester(
         dataset=test_dts, exclude_ranks=None, batch_size=cfg.general.val_bs, num_workers=cfg.general.num_workers,
     )
@@ -111,7 +103,12 @@ def run(cfg):
         start_time = time()
 
         # """""""""""""""""" Training Loop """"""""""""""""""""""""""
-        loader = get_dataloader()
+        loader = DataLoader(
+            train_dts,
+            batch_sampler=sampler,
+            num_workers=cfg.general.num_workers,
+            pin_memory=True
+        )
         logs = eng.base_update(
             net=net,
             loader=loader,

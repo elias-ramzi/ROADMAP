@@ -18,8 +18,8 @@ def _batch_optimization(
     logs = {}
     losses = []
     for crit, weight in criterion:
-        if hasattr(criterion, "paths_needed"):
-            loss = crit(scores, label_matrix, batch["path"])
+        if hasattr(crit, 'takes_embeddings'):
+            loss = crit(di, batch["label"].view(-1).cuda())
         else:
             loss = crit(scores, label_matrix)
 
@@ -64,7 +64,5 @@ def base_update(
 
         meter.update(logs)
         iterator.set_postfix({k: f"{v:0.4f}" for k, v in meter.avg.items()})
-
-        break
 
     return meter.avg
