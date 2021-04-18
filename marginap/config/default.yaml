@@ -13,3 +13,7 @@ defaults:
     - optimizer: sop
 
     - transform: sop
+
+# hydra:
+#   run:
+#     dir: ${experience.log_dir}/${experience.experiment_name}/outputs

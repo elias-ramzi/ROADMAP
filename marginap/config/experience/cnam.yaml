@@ -1,5 +1,5 @@
 # @package _group_
 experiment_name: ???
-log_dir: ~/experiments/neurips
+log_dir: "${env:HOME}/experiments/neurips"
 seed: ???
 resume: null

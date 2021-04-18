@@ -153,12 +153,14 @@ def run(cfg):
             writer.add_scalar(f"LR/{grp}", v, e)
 
         for k, v in logs.items():
+            logging.info(f"{k} : {v:.4f}")
             writer.add_scalar(f"Train/{k}", v, e)
 
         if metrics is not None:
             for k, v in metrics['test'].items():
                 if k == 'epoch':
                     continue
+                logging.info(f"{k} : {v:.4f}")
                 writer.add_scalar(f"Evaluation/{k}", v, e)
 
         end_time = time()

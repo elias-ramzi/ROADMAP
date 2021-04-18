@@ -24,10 +24,21 @@ def tau_sigmoid(tensor, temp):
 def rank_upper_bound(tens, theta, mu_n, tau_p):
     neg_mask = (tens < 0)
     pos_mask = ~neg_mask
-    constrain_neg = (tens > -mu_n)[neg_mask].float()
+    constrain_neg = (tens[neg_mask] > -mu_n).float()
 
     tens[neg_mask] = ((theta / (mu_n)) * tens[neg_mask] + theta) * constrain_neg
     tens[pos_mask] = tau_p * tens[pos_mask] + theta
+    return tens
+
+
+def piecewise_affine(tens, theta, mu_n, mu_p):
+    neg_mask = (tens < 0)
+    pos_mask = ~neg_mask
+    constrain_neg = (tens[neg_mask] > -mu_n).float()
+    constrain_pos = (tens[pos_mask] < mu_p)
+
+    tens[neg_mask] = ((theta / mu_n) * tens[neg_mask] + theta) * constrain_neg
+    tens[pos_mask] = (((1 - theta) / mu_p) * tens[pos_mask] + theta) * constrain_pos.float() + (~constrain_pos).float()
     return tens
 
 
@@ -55,7 +66,6 @@ class SmoothRankAP(nn.Module):
         # ------ differentiable ranking of only positive set in retrieval set ------
         # compute the mask which only gives non-zero weights to the positive set
         pos_mask = (target - torch.eye(batch_size).to(device))
-        # pass through the sigmoid
         sim_pos_sg = sim_diff_sigmoid * pos_mask
         # compute the rankings of the positive set
         sim_pos_rk = (torch.sum(sim_pos_sg, dim=-1) + target) * target
@@ -96,3 +106,18 @@ class MarginAP(SmoothRankAP):
 
     def extra_repr(self,):
         return f"mu={self.mu}, tau={self.tau}"
+
+
+class AffineAP(SmoothRankAP):
+
+    def __init__(self, theta, mu_n, mu_p, return_type='1-mAP'):
+        super().__init__()
+        self.theta = theta
+        self.mu_n = mu_n
+        self.mu_p = mu_p
+        assert return_type in ["1-mAP", "1-AP", "AP"]
+        self.rank_approximation = partial(rank_upper_bound, theta=theta, mu_n=mu_n, mu_p=mu_p)
+        self.return_type = return_type
+
+    def extra_repr(self,):
+        return f"theta={self.theta}, mu_n={self.mu_n}, mu_p={self.mu_p}"
