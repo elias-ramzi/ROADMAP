@@ -1,3 +1,6 @@
+six
+appdirs
+ordered_set
 ipython
 jupyter
 ipdb

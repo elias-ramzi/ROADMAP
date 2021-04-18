@@ -73,10 +73,13 @@ class RetrievalNet(nn.Module):
         if self.norm_features:
             logging.info("Using a LayerNorm layer")
             self.standardize = nn.LayerNorm(out_features, elementwise_affine=False)
+        else:
+            self.standardize = nn.Identity()
 
         if not self.without_fc:
             self.fc = nn.Linear(out_features, embed_dim)
         else:
+            self.fc = nn.Identity()
             logging.info("Not using a linear projection layer")
 
     def forward(self, X):
@@ -85,10 +88,7 @@ class RetrievalNet(nn.Module):
             X = X[0]
 
         X = X.view(X.size(0), -1)
-        if self.norm_features:
-            X = self.standardize(X)
-
-        if not self.without_fc:
-            X = self.fc(X)
+        X = self.standardize(X)
+        X = self.fc(X)
         X = F.normalize(X, p=2, dim=1)
         return X

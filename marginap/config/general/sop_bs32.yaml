@@ -1,0 +1,12 @@
+# @package _group_
+sampler:
+  HierarchicalSampler:
+    batch_size: 32
+    samples_per_class: 4
+    batches_per_super_pair: 40
+
+max_iter: 50
+val_bs: 96
+val_freq: 5
+num_workers: 10
+freeze_batch_norm: True

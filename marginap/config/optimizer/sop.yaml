@@ -10,5 +10,5 @@ optimizer:
 
 scheduler:
   MultiStepLR:
-    milestones: [30, 70]
-    gamma: 0.3
+    milestones: [25]
+    gamma: 0.1
