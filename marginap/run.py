@@ -124,12 +124,16 @@ def run(cfg):
         # """""""""""""""""" Evaluate Model """"""""""""""""""""""""""
         if (e % cfg.general.val_freq == 0) or (e == cfg.general.max_iter):
             logging.info(f"Evaluation : @epoch #{e} for model {cfg.experience.experiment_name}")
+            torch.cuda.empty_cache()
             metrics = eng.evaluate(
                 test_dts,
                 net,
                 epoch=e,
                 tester=tester,
+                batch_size=cfg.general.val_bs,
+                num_workers=cfg.general.num_workers,
             )
+            torch.cuda.empty_cache()
 
         # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
         eng.checkpoint(

@@ -12,7 +12,7 @@ def get_tester(dataset, exclude_ranks=None, batch_size=64, num_workers=16):
         batch_size=batch_size,
         dataloader_num_workers=num_workers,
         accuracy_calculator=get_accuracy_calculator(exclude_ranks),
-        data_device='cuda',
+        data_device=None,
     )
 
 
