@@ -24,21 +24,22 @@ def _batch_optimization(
     losses = []
     for crit, weight in criterion:
         if hasattr(crit, 'takes_embeddings'):
-            loss = crit(di, labels)
-            logs[crit.__class__.__name__] = loss.item()
+            loss = crit(di, labels.view(-1))
             if memory:
-                mem_loss = crit(memory_embeddings, memory_labels)
-                logs[f"memory_{crit.__class__.__name__}"] = mem_loss.item()
-                loss += mem_loss
+                mem_loss = crit(di, labels.view(-1), memory_embeddings, memory_labels.view(-1))
+
         else:
             loss = crit(scores, label_matrix)
-            logs[crit.__class__.__name__] = loss.item()
             if memory:
                 mem_loss = crit(memory_scores, memory_label_matrix)
-                logs[f"memory_{crit.__class__.__name__}"] = mem_loss.item()
-                loss += mem_loss
 
+        loss = loss.mean()
         losses.append(weight * loss)
+        logs[crit.__class__.__name__] = loss.item()
+        if memory:
+            mem_loss = mem_loss.mean()
+            losses.append(weight * mem_loss)
+            logs[f"memory_{crit.__class__.__name__}"] = mem_loss.item()
 
     total_loss = sum(losses)
     total_loss.backward()

@@ -4,15 +4,19 @@ import torch
 import torch.nn as nn
 
 
+def get_mask(lst):
+    return [i == lst.index(x) for i, x in enumerate(lst)]
+
+
 class XBM(nn.Module):
 
     def __init__(self, size, unique=True):
         super().__init__()
-        self.size = size
+        self.size = tuple(size)
         self.unique = unique
 
-        self.features_memory = nn.Parameter(torch.zeros(size, dtype=torch.float), requires_grad=False)
-        self.labels_memory = nn.Parameter(torch.zeros((size[0], 1), dtype=torch.float), requires_grad=False)
+        self.features_memory = nn.Parameter(torch.zeros(self.size, dtype=torch.float), requires_grad=False)
+        self.labels_memory = nn.Parameter(torch.zeros((self.size[0], 1), dtype=torch.float), requires_grad=False)
 
         if self.unique:
             self.index = {'__init__': -1}
@@ -28,13 +32,14 @@ class XBM(nn.Module):
         self.index.extend(available[:bs])
 
     def add_with_keys(self, features, labels, keys):
-        indexes = set(keys.view(-1).tolist())
-        for k in (indexes - set(self.index.keys())):
+        mask = get_mask(keys)
+        keys = set(keys)
+        for k in (keys - set(self.index.keys())):
             self.index[k] = max(self.index.values()) + 1
 
-        indexes = [self.index[k] for k in keys.view(-1).tolist()]
-        self.features_memory[indexes] = features
-        self.labels_memory[indexes] = labels.view(-1, 1)
+        indexes = [self.index[k] for k in keys]
+        self.features_memory[indexes] = features[mask]
+        self.labels_memory[indexes] = labels[mask].view(-1, 1).float()
 
     def get_occupied_storage(self,):
         if self.unique:
@@ -48,7 +53,6 @@ class XBM(nn.Module):
     def forward(self, features, labels, keys=None):
         if self.unique:
             assert keys is not None
-            assert len(set(keys.view(-1).tolist())) == features.size(0)
             self.add_with_keys(features, labels, keys)
         else:
             self.add_without_keys(features, labels)

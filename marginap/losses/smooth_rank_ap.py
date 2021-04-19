@@ -158,7 +158,7 @@ class MarginAP(SmoothRankAP):
         self.tau = tau
 
     def extra_repr(self,):
-        return f"mu={self.mu}, tau={self.tau}"
+        return f"mu={self.mu}, tau={self.tau}, return_type={self.return_type}"
 
 
 class AffineAP(SmoothRankAP):

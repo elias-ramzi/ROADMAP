@@ -96,7 +96,12 @@ def run(cfg):
 
     # """""""""""""""""" Handle Cuda """"""""""""""""""""""""""
     if torch.cuda.device_count() > 1:
+        logging.info("Model is parallelized")
         net = nn.DataParallel(net)
+
+        if cfg.general.parallel_crit:
+            logging.info("Loss will be computed on multiple devices")
+            criterion = [(nn.DataParallel(crit), w) for crit, w in criterion]
 
     net.cuda()
     _ = [crit.cuda() for crit, _ in criterion]
