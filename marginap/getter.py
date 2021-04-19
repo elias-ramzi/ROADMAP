@@ -7,6 +7,7 @@ import losses
 import samplers
 import datasets
 import models
+import engine
 
 
 class Getter:
@@ -72,3 +73,9 @@ class Getter:
         name = list(config.keys())[0]
         net = getattr(models, name)(**config[name])
         return net
+
+    def get_memory(self, config):
+        name = config.name
+        memory = getattr(engine, name)(**config.kwargs)
+        logging.info(memory)
+        return memory

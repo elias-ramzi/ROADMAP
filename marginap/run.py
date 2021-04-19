@@ -25,14 +25,15 @@ def run(cfg):
     log_dir = join(log_dir, cfg.experience.experiment_name)
     if os.path.isdir(log_dir) and not cfg.experience.resume:
         logging.warning(f"Existing {log_dir}, folder already exists")
-        sys.exit()
+        return
 
     if not cfg.experience.resume:
+        state = None
         restore_epoch = 0
         os.makedirs(join(log_dir, "logs"))
         os.makedirs(join(log_dir, "weights"))
     else:
-        logging.info(f"Resuming from state : {cfg.experience.resume}")
+        logging.info(f"Resuming from state : {join(log_dir, 'weights', cfg.experience.resume)}")
         state = torch.load(join(log_dir, 'weights', cfg.experience.resume), map_location='cpu')
         restore_epoch = state['epoch']
 
@@ -69,6 +70,7 @@ def run(cfg):
 
     if cfg.experience.resume:
         net.load_state_dict(state['net_state'])
+        net.cuda()
 
     # """""""""""""""""" Create Optimizer """"""""""""""""""""""""""
     optimizer = getter.get_optimizer(net, cfg.optimizer.optimizer)
@@ -85,6 +87,13 @@ def run(cfg):
     # """""""""""""""""" Create Criterion """"""""""""""""""""""""""
     criterion = getter.get_loss(cfg.loss)
 
+    # """""""""""""""""" Create Memory """"""""""""""""""""""""""
+    memory = None
+    if cfg.memory.name is not None:
+        logging.info("Using cross batch memory")
+        memory = getter.get_memory(cfg.memory)
+        memory.cuda()
+
     # """""""""""""""""" Handle Cuda """"""""""""""""""""""""""
     if torch.cuda.device_count() > 1:
         net = nn.DataParallel(net)
@@ -95,8 +104,8 @@ def run(cfg):
     # """""""""""""""""" Iter over epochs """"""""""""""""""""""""""
     logging.info(f"Training of model {cfg.experience.experiment_name}")
 
-    for e in range(1 + restore_epoch, cfg.general.max_iter + 1 + restore_epoch):
-        logs = None
+    metrics = None
+    for e in range(1 + restore_epoch, cfg.general.max_iter + 1):
         metrics = None
 
         logging.info(f"Training : @epoch #{e} for model {cfg.experience.experiment_name}")
@@ -115,8 +124,7 @@ def run(cfg):
             criterion=criterion,
             optimizer=optimizer,
             scheduler=None,
-            compute_similarity=True,
-            create_label=True,
+            memory=memory,
         )
         scheduler.step()
         end_train_time = time()
@@ -172,7 +180,7 @@ def run(cfg):
         logging.info(f"Epoch took : {elapsed_time}")
         logging.info(f"Training loop took : {elapsed_time_train}")
         if metrics is not None:
-            logging.info(f"Training loop took : {elapsed_time_eval}")
+            logging.info(f"Evaluation step took : {elapsed_time_eval}")
 
         print()
         print()

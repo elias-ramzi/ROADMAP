@@ -8,6 +8,8 @@ defaults:
 
     - loss: smoothap
 
+    - memory: default
+
     - model: resnet
 
     - optimizer: sop

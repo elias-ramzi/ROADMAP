@@ -3,15 +3,13 @@ import zipfile
 from os.path import join
 
 import pandas as pd
-import torch
-from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url
-from PIL import Image
 
 import utils as lib
+from .base_dataset import BaseDataset
 
 
-class SOPDataset(Dataset):
+class SOPDataset(BaseDataset):
     url = 'ftp://cs.stanford.edu/cs/cvgl/Stanford_Online_Products.zip'
     filename = 'Stanford_Online_Products.zip'
     md5 = '7f73d41a2f44250d4779881525aea32e'
@@ -42,24 +40,6 @@ class SOPDataset(Dataset):
         self.instance_dict = {cl: [] for cl in set(self.labels)}
         for idx, cl in enumerate(self.labels):
             self.instance_dict[cl].append(idx)
-
-    def __len__(self,):
-        return len(self.paths)
-
-    def __getitem__(self, idx):
-        pth = self.paths[idx]
-        label = self.labels[idx]
-        super_label = self.super_labels[idx]
-
-        img = Image.open(pth).convert('RGB')
-        if self.transform:
-            img = self.transform(img)
-
-        label = torch.tensor([label])
-        super_label = torch.tensor([super_label])
-
-        out = {"image": img, "label": label, "super_label": super_label, "path": pth}
-        return out
 
     def download_dataset(self):
         download_url(self.url, self.root, filename=self.filename, md5=self.md5)

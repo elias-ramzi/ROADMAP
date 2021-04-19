@@ -43,10 +43,46 @@ def piecewise_affine(tens, theta, mu_n, mu_p):
 
 
 class SmoothRankAP(nn.Module):
-    def __init__(self):
+    def __init__(self, rank_approximation, return_type='1-mAP'):
         super().__init__()
+        self.rank_approximation = rank_approximation
+        self.return_type = return_type
+        assert return_type in ["1-mAP", "1-AP", "AP", 'mAP']
 
-    def forward(self, scores, target):
+    def general_forward(self, scores, target):
+        batch_size = target.size(0)
+        nb_instances = target.size(1)
+        device = scores.device
+
+        ap_score = []
+        mask = (1 - torch.eye(nb_instances, device=device))
+        for idx in range(batch_size):
+            # shape M
+            query = scores[idx]
+            # shape M x M
+            query = query.view(1, -1) - query.view(-1, 1)
+            query = self.rank_approximation(query) * mask
+            # shape M
+            pos_mask = target[idx]
+            pos_mask = pos_mask.view(1, -1)
+
+            # shape M
+            rk = torch.sum(query, -1) + 1
+
+            # shape M x M
+            pos_rk = query * pos_mask
+            # shape M
+            pos_rk = (torch.sum(pos_rk, -1) + target[idx]) * target[idx]
+
+            # shape 1
+            ap = (pos_rk / rk).sum(-1) / target[idx].sum(-1)
+            ap_score.append(ap)
+
+        # shape N
+        ap_score = torch.stack(ap_score)
+        return ap_score
+
+    def quick_forward(self, scores, target):
         batch_size = target.size(0)
         device = scores.device
 
@@ -71,9 +107,22 @@ class SmoothRankAP(nn.Module):
         sim_pos_rk = (torch.sum(sim_pos_sg, dim=-1) + target) * target
 
         ap = ((sim_pos_rk / sim_all_rk).sum(1) * (1 / target.sum(1)))
+        return ap
+
+    def forward(self, scores, target):
+        assert scores.shape == target.shape
+        assert len(scores.shape) == 2
+
+        if scores.size(0) == scores.size(1):
+            ap = self.quick_forward(scores, target)
+
+        else:
+            ap = self.general_forward(scores, target)
 
         if self.return_type == 'AP':
             return ap
+        if self.return_type == 'mAP':
+            return ap.mean()
         if self.return_type == '1-AP':
             return 1 - ap
         else:
@@ -81,14 +130,20 @@ class SmoothRankAP(nn.Module):
             return loss
 
 
+class HeavisideAP(SmoothRankAP):
+    """here for testing purposes"""
+
+    def __init__(self, return_type='1-mAP'):
+        rank_approximation = partial(torch.heaviside, values=torch.tensor(1.))
+        super().__init__(rank_approximation, return_type)
+
+
 class SmoothAP(SmoothRankAP):
 
     def __init__(self, temp, return_type='1-mAP'):
-        super().__init__()
+        rank_approximation = partial(tau_sigmoid, temp=temp)
+        super().__init__(rank_approximation, return_type)
         self.temp = temp
-        assert return_type in ["1-mAP", "1-AP", "AP"]
-        self.rank_approximation = partial(tau_sigmoid, temp=temp)
-        self.return_type = return_type
 
     def extra_repr(self,):
         return f"temp={self.temp}"
@@ -97,12 +152,10 @@ class SmoothAP(SmoothRankAP):
 class MarginAP(SmoothRankAP):
 
     def __init__(self, mu, tau, return_type='1-mAP'):
-        super().__init__()
+        rank_approximation = partial(rank_upper_bound, theta=1.0, mu_n=mu, tau_p=tau)
+        super().__init__(rank_approximation, return_type)
         self.mu = mu
         self.tau = tau
-        assert return_type in ["1-mAP", "1-AP", "AP"]
-        self.rank_approximation = partial(rank_upper_bound, theta=1.0, mu_n=mu, tau_p=tau)
-        self.return_type = return_type
 
     def extra_repr(self,):
         return f"mu={self.mu}, tau={self.tau}"
@@ -111,13 +164,11 @@ class MarginAP(SmoothRankAP):
 class AffineAP(SmoothRankAP):
 
     def __init__(self, theta, mu_n, mu_p, return_type='1-mAP'):
-        super().__init__()
+        rank_approximation = partial(rank_upper_bound, theta=theta, mu_n=mu_n, mu_p=mu_p)
+        super().__init__(rank_approximation, return_type)
         self.theta = theta
         self.mu_n = mu_n
         self.mu_p = mu_p
-        assert return_type in ["1-mAP", "1-AP", "AP"]
-        self.rank_approximation = partial(rank_upper_bound, theta=theta, mu_n=mu_n, mu_p=mu_p)
-        self.return_type = return_type
 
     def extra_repr(self,):
         return f"theta={self.theta}, mu_n={self.mu_n}, mu_p={self.mu_p}"

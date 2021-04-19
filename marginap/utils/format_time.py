@@ -1,5 +1,4 @@
-def format_time(seconds: int) -> str:
-    """format time"""
+def format_time(seconds):
     seconds = int(seconds)
     minutes = seconds // 60
     hours = minutes // 60
