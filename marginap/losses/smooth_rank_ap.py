@@ -54,7 +54,7 @@ class SmoothRankAP(nn.Module):
         super().__init__()
         self.rank_approximation = rank_approximation
         self.return_type = return_type
-        self.rank_needs_target = False
+        self.rank_needs_target = rank_needs_target
         assert return_type in ["1-mAP", "1-AP", "AP", 'mAP']
 
     def general_forward(self, scores, target):
@@ -183,4 +183,7 @@ class AffineAP(SmoothRankAP):
         self.gamma = gamma
 
     def extra_repr(self,):
-        return f"theta={self.theta}, mu_n={self.mu_n}, mu_p={self.mu_p}"
+        repr = f"theta={self.theta}, mu_n={self.mu_n}, mu_p={self.mu_p}"
+        if self.gamma is not None:
+            repr += f", gamma={self.gamma}"
+        return repr
