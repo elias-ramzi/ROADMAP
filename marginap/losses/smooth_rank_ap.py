@@ -31,7 +31,7 @@ def rank_upper_bound(tens, theta, mu_n, tau_p):
     return tens
 
 
-def piecewise_affine(tens, theta, mu_n, mu_p):
+def piecewise_affine(tens, theta, mu_n, mu_p, target=None, gamma=None):
     neg_mask = (tens < 0)
     pos_mask = ~neg_mask
     constrain_neg = (tens[neg_mask] > -mu_n).float()
@@ -39,14 +39,22 @@ def piecewise_affine(tens, theta, mu_n, mu_p):
 
     tens[neg_mask] = ((theta / mu_n) * tens[neg_mask] + theta) * constrain_neg
     tens[pos_mask] = (((1 - theta) / mu_p) * tens[pos_mask] + theta) * constrain_pos.float() + (~constrain_pos).float()
+
+    if gamma is not None:
+        sto = (1 - target.unsqueeze(1)) * (1 + gamma * torch.randn(tens.size(0), tens.size(0), tens.size(1), device=tens.device).abs())
+        sto += target
+        tens *= sto
+        tens.clamp_max_(1.)
+
     return tens
 
 
 class SmoothRankAP(nn.Module):
-    def __init__(self, rank_approximation, return_type='1-mAP'):
+    def __init__(self, rank_approximation, rank_needs_target=False, return_type='1-mAP'):
         super().__init__()
         self.rank_approximation = rank_approximation
         self.return_type = return_type
+        self.rank_needs_target = False
         assert return_type in ["1-mAP", "1-AP", "AP", 'mAP']
 
     def general_forward(self, scores, target):
@@ -93,7 +101,10 @@ class SmoothRankAP(nn.Module):
         # compute the difference matrix
         sim_diff = scores.unsqueeze(1) - scores.unsqueeze(1).permute(0, 2, 1)
         # pass through the sigmoid
-        sim_diff_sigmoid = self.rank_approximation(sim_diff)
+        if self.rank_needs_target:
+            sim_diff_sigmoid = self.rank_approximation(sim_diff, target=target)
+        else:
+            sim_diff_sigmoid = self.rank_approximation(sim_diff)
 
         sim_sg = sim_diff_sigmoid * mask
         # compute the rankings
@@ -163,12 +174,13 @@ class MarginAP(SmoothRankAP):
 
 class AffineAP(SmoothRankAP):
 
-    def __init__(self, theta, mu_n, mu_p, return_type='1-mAP'):
-        rank_approximation = partial(rank_upper_bound, theta=theta, mu_n=mu_n, mu_p=mu_p)
-        super().__init__(rank_approximation, return_type)
+    def __init__(self, theta, mu_n, mu_p, gamma=None, return_type='1-mAP'):
+        rank_approximation = partial(piecewise_affine, theta=theta, mu_n=mu_n, mu_p=mu_p, gamma=gamma)
+        super().__init__(rank_approximation, rank_needs_target=(gamma is not None), return_type=return_type)
         self.theta = theta
         self.mu_n = mu_n
         self.mu_p = mu_p
+        self.gamma = gamma
 
     def extra_repr(self,):
         return f"theta={self.theta}, mu_n={self.mu_n}, mu_p={self.mu_p}"

@@ -10,15 +10,17 @@ class BaseDataset(Dataset):
 
     def __getitem__(self, idx):
         pth = self.paths[idx]
-        label = self.labels[idx]
-        super_label = self.super_labels[idx]
-
         img = Image.open(pth).convert('RGB')
         if self.transform:
             img = self.transform(img)
 
+        label = self.labels[idx]
         label = torch.tensor([label])
-        super_label = torch.tensor([super_label])
+        out = {"image": img, "label": label, "path": pth}
 
-        out = {"image": img, "label": label, "super_label": super_label, "path": pth}
+        if hasattr(self, 'super_labels'):
+            super_label = self.super_labels[idx]
+            super_label = torch.tensor([super_label])
+            out['super_label'] = super_label
+
         return out
