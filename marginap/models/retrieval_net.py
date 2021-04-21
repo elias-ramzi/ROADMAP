@@ -38,14 +38,14 @@ def get_backbone(name):
         out_dim = 384
         backbone = timm.create_model('vit_deit_small_patch16_224', pretrained=True)
         backbone.reset_classifier(-1)
-    elif name == 'vit_deit_distilled':
-        logging.info("using DeiT distilled")
-        out_dim = 384
-        backbone = timm.create_model('vit_deit_small_distilled_patch16_224', pretrained=True)
-        backbone.reset_classifier(-1)
-        backbone.head_dist = None
-        backbone.dist_token = None
-        backbone.pre_logits = nn.Identity()
+    # elif name == 'vit_deit_distilled':
+    #     logging.info("using DeiT distilled")
+    #     out_dim = 384
+    #     backbone = timm.create_model('vit_deit_small_distilled_patch16_224', pretrained=True)
+    #     backbone.reset_classifier(-1)
+    #     backbone.head_dist = None
+    #     backbone.dist_token = None
+    #     backbone.pre_logits = nn.Identity()
     elif name == 'tnt':
         logging.info("using TnT")
         out_dim = 384

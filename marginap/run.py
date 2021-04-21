@@ -48,6 +48,8 @@ def run(cfg):
     torch.manual_seed(cfg.experience.seed)
     random.seed(cfg.experience.seed)
     np.random.seed(cfg.experience.seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
     getter = Getter()
 
@@ -79,10 +81,17 @@ def run(cfg):
         optimizer.load_state_dict(state['optimizer_state'])
 
     # """""""""""""""""" Create Scheduler """"""""""""""""""""""""""
-    scheduler = getter.get_scheduler(optimizer, cfg.optimizer.scheduler)
+    scheduler = None
+    if hasattr(cfg.optimizer, 'scheduler'):
+        # TODO: change the following
+        if 'scheduler_state' not in state:
+            lib.set_initial_lr(optimizer)
+            cfg.optimizer.scheduler.MultiStepLR.last_epoch = restore_epoch
 
-    if cfg.experience.resume:
-        scheduler.load_state_dict(state['scheduler_state'])
+        scheduler = getter.get_scheduler(optimizer, cfg.optimizer.scheduler)
+
+        if cfg.experience.resume & ('scheduler_state' in state):
+            scheduler.load_state_dict(state['scheduler_state'])
 
     # """""""""""""""""" Create Criterion """"""""""""""""""""""""""
     criterion = getter.get_loss(cfg.loss)
@@ -131,7 +140,10 @@ def run(cfg):
             scheduler=None,
             memory=memory,
         )
-        scheduler.step()
+
+        if scheduler is not None:
+            logging.info('Scheduler step')
+            scheduler.step()
         end_train_time = time()
 
         # """""""""""""""""" Evaluate Model """"""""""""""""""""""""""

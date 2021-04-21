@@ -1,0 +1,5 @@
+# @package _group_
+experiment_name: ???
+log_dir: "${env:SCRATCH}/experiments/neurips"
+seed: ???
+resume: null

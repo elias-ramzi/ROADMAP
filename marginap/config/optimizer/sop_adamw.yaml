@@ -12,3 +12,4 @@ scheduler:
   MultiStepLR:
     milestones: [25]
     gamma: 0.1
+    last_epoch: -1

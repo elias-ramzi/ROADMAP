@@ -49,6 +49,22 @@ def piecewise_affine(tens, theta, mu_n, mu_p, target=None, gamma=None):
     return tens
 
 
+def change_regime(tens, theta, mu, tau):
+    neg_mask = (tens < 0)
+    constrain_neg = (tens[neg_mask] > -mu).float()
+
+    pos_mask = ~neg_mask
+    constrain_pos = tens < mu
+    high = pos_mask & constrain_pos
+    slope = pos_mask & (~constrain_pos)
+
+    tens[neg_mask] = ((theta / mu) * tens[neg_mask] + theta) * constrain_neg
+    tens[high] = (((1 - theta) / mu) * tens[high] + theta)
+    tens[slope] = tens[slope] * tau + 1
+
+    return tens
+
+
 class SmoothRankAP(nn.Module):
     def __init__(self, rank_approximation, rank_needs_target=False, return_type='1-mAP'):
         super().__init__()
@@ -146,14 +162,14 @@ class HeavisideAP(SmoothRankAP):
 
     def __init__(self, return_type='1-mAP'):
         rank_approximation = partial(torch.heaviside, values=torch.tensor(1.))
-        super().__init__(rank_approximation, return_type)
+        super().__init__(rank_approximation, return_type=return_type)
 
 
 class SmoothAP(SmoothRankAP):
 
     def __init__(self, temp, return_type='1-mAP'):
         rank_approximation = partial(tau_sigmoid, temp=temp)
-        super().__init__(rank_approximation, return_type)
+        super().__init__(rank_approximation, return_type=return_type)
         self.temp = temp
 
     def extra_repr(self,):
@@ -164,7 +180,7 @@ class MarginAP(SmoothRankAP):
 
     def __init__(self, mu, tau, return_type='1-mAP'):
         rank_approximation = partial(rank_upper_bound, theta=1.0, mu_n=mu, tau_p=tau)
-        super().__init__(rank_approximation, return_type)
+        super().__init__(rank_approximation, return_type=return_type)
         self.mu = mu
         self.tau = tau
 
@@ -187,3 +203,15 @@ class AffineAP(SmoothRankAP):
         if self.gamma is not None:
             repr += f", gamma={self.gamma}"
         return repr
+
+
+class AdaptativeAP(SmoothRankAP):
+
+    def __init__(self, theta, mu, tau, return_type='1-mAP'):
+        rank_approximation = partial(change_regime, theta=theta, mu=mu, tau=tau)
+        super().__init__(rank_approximation, return_type=return_type)
+        self.mu = mu
+        self.tau = tau
+
+    def extra_repr(self,):
+        return f"mu={self.mu}, tau={self.tau}, return_type={self.return_type}"

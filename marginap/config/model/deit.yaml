@@ -3,4 +3,4 @@ RetrievalNet:
   backbone_name: vit_deit
   embed_dim: 384
   norm_features: False
-  without_fc: False
+  without_fc: True
