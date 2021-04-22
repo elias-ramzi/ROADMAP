@@ -37,6 +37,13 @@ class MPerClassSampler:
     def __len__(self,):
         return len(self.batches)
 
+    def __repr__(self,):
+        return (
+            f"{self.__class__.__name__}(\n"
+            f"    batch_size={self.batch_size},\n"
+            f"    samples_per_class={self.samples_per_class}\n)"
+        )
+
     def reshuffle(self):
         image_dict = copy.deepcopy(self.image_dict)
         for sub in image_dict:

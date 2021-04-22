@@ -1,10 +1,8 @@
 #!/bin/bash
 module purge
-module load pytorch-gpu/py3/1.7.1 
-module load timm
-module load pytorch-metric-learning
-module load faiss-gpu
-module load hydra-core
+module load pytorch-gpu/py3/1.7.1
+
+cd $WORK/margin_ap
 
 
 export SOP_DATA_DIR=$SCRATCH/

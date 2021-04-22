@@ -33,8 +33,16 @@ def run(cfg):
         os.makedirs(join(log_dir, "logs"))
         os.makedirs(join(log_dir, "weights"))
     else:
-        logging.info(f"Resuming from state : {join(log_dir, 'weights', cfg.experience.resume)}")
-        state = torch.load(join(log_dir, 'weights', cfg.experience.resume), map_location='cpu')
+        if not os.path.isfile(cfg.experience.resume):
+            logging.info(f"Resuming from state : {join(log_dir, 'weights', cfg.experience.resume)}")
+            state = torch.load(join(log_dir, 'weights', cfg.experience.resume), map_location='cpu')
+        else:
+            resume = os.path.expandvars(cfg.experience.resume)
+            resume = os.path.expanduser(resume)
+            logging.info(f"Resuming from state : {resume}")
+            state = torch.load(resume, map_location='cpu')
+            os.makedirs(join(log_dir, "logs"))
+            os.makedirs(join(log_dir, "weights"))
         restore_epoch = state['epoch']
 
     writer = SummaryWriter(join(log_dir, "logs"), purge_step=restore_epoch)
@@ -84,14 +92,16 @@ def run(cfg):
     scheduler = None
     if hasattr(cfg.optimizer, 'scheduler'):
         # TODO: change the following
-        if 'scheduler_state' not in state:
-            lib.set_initial_lr(optimizer)
-            cfg.optimizer.scheduler.MultiStepLR.last_epoch = restore_epoch
+        if (state is not None):
+            if ('scheduler_state' not in state):
+                lib.set_initial_lr(optimizer)
+                cfg.optimizer.scheduler.MultiStepLR.last_epoch = restore_epoch - 1
 
         scheduler = getter.get_scheduler(optimizer, cfg.optimizer.scheduler)
 
-        if cfg.experience.resume & ('scheduler_state' in state):
-            scheduler.load_state_dict(state['scheduler_state'])
+        if (cfg.experience.resume is not None):
+            if ('scheduler_state' in state):
+                scheduler.load_state_dict(state['scheduler_state'])
 
     # """""""""""""""""" Create Criterion """"""""""""""""""""""""""
     criterion = getter.get_loss(cfg.loss)

@@ -19,7 +19,6 @@ class HierarchicalSampler(BatchSampler):
         samples_per_class,
         batches_per_super_pair,
         nb_categories=2,
-        super_pairs=None,
     ):
         """
         labels: 2D array, where rows correspond to elements, and columns correspond to the hierarchical labels
@@ -53,6 +52,15 @@ class HierarchicalSampler(BatchSampler):
 
     def __len__(self,):
         return len(self.batches)
+
+    def __repr__(self,):
+        return (
+            f"{self.__class__.__name__}(\n"
+            f"    batch_size={self.batch_size},\n"
+            f"    samples_per_class={self.samples_per_class},\n"
+            f"    batches_per_super_pair={self.batches_per_super_pair},\n"
+            f"    nb_categories={self.nb_categories}\n)"
+        )
 
     def reshuffle(self):
         batches = []
