@@ -89,19 +89,12 @@ def run(cfg):
             opt.load_state_dict(opt_state)
 
     # """""""""""""""""" Create Scheduler """"""""""""""""""""""""""
-    scheduler = None
-    if hasattr(cfg.optimizer, 'scheduler'):
-        # TODO: change the following
-        if (state is not None):
-            if ('scheduler_state' not in state):
-                lib.set_initial_lr(optimizer)
-                cfg.optimizer.scheduler.MultiStepLR.last_epoch = restore_epoch - 1
+    scheduler = getter.get_scheduler(optimizer, cfg.optimizer.scheduler)
 
-        scheduler = getter.get_scheduler(optimizer, cfg.optimizer.scheduler)
-
-        if (cfg.experience.resume is not None):
-            if ('scheduler_state' in state):
-                scheduler.load_state_dict(state['scheduler_state'])
+    if cfg.experience.resume:
+        for key, schs in scheduler.items():
+            for sch, sch_state in zip(optimizer, state[f'scheduler_{key}_state']):
+                sch.load_state_dict(sch_state)
 
     # """""""""""""""""" Create Criterion """"""""""""""""""""""""""
     criterion = getter.get_loss(cfg.loss)
