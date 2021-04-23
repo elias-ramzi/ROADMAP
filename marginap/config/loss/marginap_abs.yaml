@@ -1,13 +1,12 @@
 # @package _group_
-losses:
-  MarginAP:
+- name: MarginAP
+  weight: 1.0
+  kwargs:
     mu: 0.05
     tau: 0.05
 
-  ContrastiveLoss:
+- name: ContrastiveLoss
+  weight: 0.01
+  kwargs:
     pos_margin: 1.0
     neg_margin: 0.5
-
-weights:
-  MarginAP: 1.0
-  ContrastiveLoss: 0.01

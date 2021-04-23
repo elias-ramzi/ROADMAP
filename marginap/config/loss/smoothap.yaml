@@ -1,6 +1,5 @@
 # @package _group_
-losses:
-  SmoothAP:
+- name: SmoothAP
+  weight: 1.0
+  kwargs:
     temp: 0.01
-
-weights: {}

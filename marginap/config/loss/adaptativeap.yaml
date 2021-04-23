@@ -1,8 +1,7 @@
 # @package _group_
-losses:
-  AdaptativeAP:
+- name: AdaptativeAP
+  weight: 1.0
+  kwargs:
     theta: 0.5
     mu: 0.025
     tau: 0.1
-
-weights: {}

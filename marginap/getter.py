@@ -25,57 +25,61 @@ class Getter:
         return transform
 
     def get_optimizer(self, net, config):
-        name = list(config.keys())[0]
-        opt = getattr(optim, name)
+        optimizers = {}
+        schedulers = {
+            "on_epoch": [],
+            "on_step": [],
+            "on_val": [],
+        }
+        for opt in config:
+            optimizer = getattr(optim, opt.name)
+            optimizer = optimizers(getattr(net, opt.params), **opt.kwargs)
+            optimizers[opt.params] = optimizer
+            logging.info(optimizer)
+            if opt.scheduler_on_epoch is not None:
+                schedulers["on_epoch"].append(self.get_scheduler(optimizer, opt.scheduler_on_epoch))
+            if opt.scheduler_on_step is not None:
+                schedulers["on_step"].append(self.get_scheduler(optimizer, opt.scheduler_on_step))
+            if opt.scheduler_on_val is not None:
+                schedulers["on_val"].append(
+                    (self.get_scheduler(optimizer, opt.scheduler_on_val), opt.scheduler_on_val.key)
+                )
 
-        to_optim = []
-        for param, kwargs in config[name].items():
-            kwargs = dict(kwargs)
-            kwargs.update({'params': getattr(net, param).parameters()})
-            to_optim.append(kwargs)
-
-        opt = opt(to_optim)
-        logging.info(opt)
-        return opt
+        return optimizers, schedulers
 
     def get_scheduler(self, opt, config):
-        name = list(config.keys())[0]
-        sch = getattr(optim.lr_scheduler, name)(opt, **config[name])
+        sch = getattr(optim.lr_scheduler, config.name)(opt, **config.kwargs)
         logging.info(sch)
         return sch
 
     def get_loss(self, config):
         criterion = []
-        for name, kwargs in config.losses.items():
-            loss = getattr(losses, name)(**kwargs)
-            weight = config.weights.get(name, 1.)
+        for crit in config:
+            loss = getattr(losses, crit.name)(**crit.kwargs)
+            weight = crit.weight
             logging.info(f"{loss} with weight {weight}")
             criterion.append((loss, weight))
         return criterion
 
     def get_sampler(self, dataset, config):
-        name = list(config.keys())[0]
-        sampler = getattr(samplers, name)(dataset, **config[name])
+        sampler = getattr(samplers, config.name)(dataset, **config.kwargs)
         logging.info(sampler)
         return sampler
 
     def get_dataset(self, transform, mode, config):
-        name = list(config.keys())[0]
-        dataset = getattr(datasets, name)(
+        dataset = getattr(datasets, config.name)(
             transform=transform,
             mode=mode,
-            **config[name],
+            **config.kwargs,
         )
         logging.info(dataset)
         return dataset
 
     def get_model(self, config):
-        name = list(config.keys())[0]
-        net = getattr(models, name)(**config[name])
+        net = getattr(models, config.name)(**config.kwargs)
         return net
 
     def get_memory(self, config):
-        name = config.name
-        memory = getattr(engine, name)(**config.kwargs)
+        memory = getattr(engine, config.name)(**config.kwargs)
         logging.info(memory)
         return memory

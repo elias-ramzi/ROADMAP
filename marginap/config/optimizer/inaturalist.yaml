@@ -1,15 +1,28 @@
 # @package _group_
-optimizer:
-  Adam:
-    backbone:
-      lr: 0.00001
-      weight_decay: 0.0004
-    fc:
-      lr: 0.00001
-      weight_decay: 0.0004
+- name: Adam
+  params: backbone
+  kwargs:
+    lr: 0.00001
+    weight_decay: 0.0004
+  scheduler_on_epoch:
+    name: MultiStepLR
+    kwargs:
+      milestones: [30, 70]
+      gamma: 0.3
+      last_epoch: -1
+  scheduler_on_step:
+  scheduler_on_val:
 
-scheduler:
-  MultiStepLR:
-    milestones: [30, 70]
-    gamma: 0.3
-    last_epoch: -1
+- name: Adam
+  params: fc
+  kwargs:
+    lr: 0.00001
+    weight_decay: 0.0004
+  scheduler_on_epoch:
+    name: MultiStepLR
+    kwargs:
+      milestones: [30, 70]
+      gamma: 0.3
+      last_epoch: -1
+  scheduler_on_step:
+  scheduler_on_val:

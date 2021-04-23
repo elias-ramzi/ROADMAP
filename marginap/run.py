@@ -66,7 +66,7 @@ def run(cfg):
     test_transform = getter.get_transform(cfg.transform.test)
     train_dts = getter.get_dataset(train_transform, 'train', cfg.dataset)
     test_dts = getter.get_dataset(test_transform, 'test', cfg.dataset)
-    sampler = getter.get_sampler(train_dts, cfg.general.sampler)
+    sampler = getter.get_sampler(train_dts, cfg.dataset.sampler)
 
     tester = eng.get_tester(
         dataset=test_dts, exclude_ranks=None, batch_size=cfg.general.val_bs, num_workers=cfg.general.num_workers,
@@ -86,7 +86,8 @@ def run(cfg):
     optimizer = getter.get_optimizer(net, cfg.optimizer.optimizer)
 
     if cfg.experience.resume:
-        optimizer.load_state_dict(state['optimizer_state'])
+        for opt, opt_state in zip(optimizer, state['optimizer_state']):
+            opt.load_state_dict(opt_state)
 
     # """""""""""""""""" Create Scheduler """"""""""""""""""""""""""
     scheduler = None
@@ -151,9 +152,9 @@ def run(cfg):
             memory=memory,
         )
 
-        if scheduler is not None:
-            logging.info('Scheduler step')
+        for sch in scheduler["on_epoch"]:
             scheduler.step()
+
         end_train_time = time()
 
         # """""""""""""""""" Evaluate Model """"""""""""""""""""""""""
@@ -170,6 +171,9 @@ def run(cfg):
             )
             torch.cuda.empty_cache()
 
+            for sch, key in scheduler["on_val"]:
+                scheduler.step(metrics[key])
+
         # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
         eng.checkpoint(
             log_dir=log_dir,
@@ -184,8 +188,8 @@ def run(cfg):
         )
 
         # """""""""""""""""" Logging Step """"""""""""""""""""""""""
-        for grp, v in lib.get_lr(optimizer).items():
-            writer.add_scalar(f"LR/{grp}", v, e)
+        for grp, opt in optimizer.items():
+            writer.add_scalar(f"LR/{grp}", list(lib.get_lr(optimizer).values())[0], e)
 
         for k, v in logs.items():
             logging.info(f"{k} : {v:.4f}")

@@ -20,9 +20,13 @@ def checkpoint(
         state_dict["net_state"] = net.module.state_dict()
     else:
         state_dict["net_state"] = net.state_dict()
-    state_dict["optimizer_state"] = optimizer.state_dict()
-    if scheduler is not None:
-        state_dict["scheduler_state"] = scheduler.state_dict()
+
+    state_dict["optimizer_state"] = [opt.state_dict() for opt in optimizer]
+
+    state_dict["scheduler_on_epoch_state"] = [sch.state_dict() for sch in scheduler["on_epoch"]]
+    state_dict["scheduler_on_step_state"] = [sch.state_dict() for sch in scheduler["on_step"]]
+    state_dict["scheduler_on_val_state"] = [sch.state_dict() for sch in scheduler["on_val"]]
+
     state_dict["epoch"] = epoch
     state_dict["seed"] = seed
     state_dict["config"] = args

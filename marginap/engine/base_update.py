@@ -54,7 +54,7 @@ def base_update(
     loader,
     criterion,
     optimizer,
-    scheduler=None,
+    scheduler,
     memory=None,
 ):
     meter = lib.DictAverage()
@@ -68,12 +68,13 @@ def base_update(
             memory,
         )
 
-        optimizer.step()
-        optimizer.zero_grad()
+        for opt in optimizer.values():
+            optimizer.step()
+            optimizer.zero_grad()
         _ = [crit.zero_grad() for crit, w in criterion]
 
-        if scheduler is not None:
-            scheduler.step()
+        for sch in scheduler["on_step"]:
+            sch.step()
 
         meter.update(logs)
         iterator.set_postfix({k: f"{v:0.4f}" for k, v in meter.avg.items()})

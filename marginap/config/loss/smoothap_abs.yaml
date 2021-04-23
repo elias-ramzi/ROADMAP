@@ -1,12 +1,11 @@
 # @package _group_
-losses:
-  SmoothAP:
+- name: SmoothAP
+  weight: 1.0
+  kwargs:
     temp: 0.01
 
-  ContrastiveLoss:
+- name: ContrastiveLoss
+  weight: 0.01
+  kwargs:
     pos_margin: 1.0
     neg_margin: 0.5
-
-weights:
-  MarginAP: 1.0
-  ContrastiveLoss: 0.01
