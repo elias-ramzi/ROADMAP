@@ -8,6 +8,7 @@ import samplers
 import datasets
 import models
 import engine
+import utils as lib
 
 
 class Getter:
@@ -77,6 +78,8 @@ class Getter:
 
     def get_model(self, config):
         net = getattr(models, config.name)(**config.kwargs)
+        if config.freeze_batch_norm:
+            net = lib.freeze_batch_norm(net)
         return net
 
     def get_memory(self, config):

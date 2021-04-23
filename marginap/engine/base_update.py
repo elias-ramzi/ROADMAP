@@ -8,6 +8,7 @@ def _batch_optimization(
     net,
     batch,
     criterion,
+    epoch,
     memory
 ):
     di = net(batch["image"].cuda())
@@ -16,9 +17,10 @@ def _batch_optimization(
     label_matrix = lib.create_label_matrix(labels)
 
     if memory:
-        memory_embeddings, memory_labels = memory(di.detach(), labels, batch["path"])
-        memory_scores = torch.mm(di, memory_embeddings.t())
-        memory_label_matrix = lib.create_label_matrix(labels, memory_labels)
+        if memory.activate_after >= epoch:
+            memory_embeddings, memory_labels = memory(di.detach(), labels, batch["path"])
+            memory_scores = torch.mm(di, memory_embeddings.t())
+            memory_label_matrix = lib.create_label_matrix(labels, memory_labels)
 
     logs = {}
     losses = []
@@ -37,9 +39,10 @@ def _batch_optimization(
         losses.append(weight * loss)
         logs[crit.__class__.__name__] = loss.item()
         if memory:
-            mem_loss = mem_loss.mean()
-            losses.append(weight * mem_loss)
-            logs[f"memory_{crit.__class__.__name__}"] = mem_loss.item()
+            if memory.activate_after >= epoch:
+                mem_loss = mem_loss.mean()
+                losses.append(weight * memory.weight * mem_loss)
+                logs[f"memory_{crit.__class__.__name__}"] = mem_loss.item()
 
     total_loss = sum(losses)
     total_loss.backward()
@@ -55,16 +58,18 @@ def base_update(
     criterion,
     optimizer,
     scheduler,
+    epoch,
     memory=None,
 ):
     meter = lib.DictAverage()
 
-    iterator = tqdm(loader, desc='Running epoch on loader')
+    iterator = tqdm(loader, desc=f'Running epoch {epoch} on loader')
     for i, batch in enumerate(iterator):
         logs = _batch_optimization(
             net,
             batch,
             criterion,
+            epoch,
             memory,
         )
 

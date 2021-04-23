@@ -84,8 +84,6 @@ class RetrievalNet(nn.Module):
 
     def forward(self, X):
         X = self.backbone(X)
-        if isinstance(X, (tuple, list)):
-            X = X[0]
 
         X = X.view(X.size(0), -1)
         X = self.standardize(X)

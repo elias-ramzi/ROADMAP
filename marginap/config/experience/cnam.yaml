@@ -3,3 +3,14 @@ experiment_name: ???
 log_dir: "${env:HOME}/experiments/neurips"
 seed: ???
 resume: null
+
+max_iter: 50
+
+val_bs: 96
+val_freq: 5
+principal_metric: 'recall_at_1_level0'
+
+num_workers: 16
+pin_memory: True
+
+parallel_crit: False

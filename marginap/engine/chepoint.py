@@ -14,6 +14,9 @@ def checkpoint(
     seed,
     args,
     writer,
+    score,
+    best_model,
+    best_score,
 ):
     state_dict = {}
     if torch.cuda.device_count() > 1:
@@ -30,6 +33,9 @@ def checkpoint(
     state_dict["epoch"] = epoch
     state_dict["seed"] = seed
     state_dict["config"] = args
+    state_dict["score"] = score
+    state_dict["best_score"] = best_score
+    state_dict["best_model"] = join(log_dir, "weights", f"{best_model}.ckpt")
 
     torch.save(state_dict, join(log_dir, "weights", "rolling.ckpt"))
     if save_checkpoint:

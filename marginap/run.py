@@ -69,14 +69,13 @@ def run(cfg):
     sampler = getter.get_sampler(train_dts, cfg.dataset.sampler)
 
     tester = eng.get_tester(
-        dataset=test_dts, exclude_ranks=None, batch_size=cfg.general.val_bs, num_workers=cfg.general.num_workers,
+        dataset=test_dts, exclude_ranks=None, batch_size=cfg.experience.val_bs, num_workers=cfg.experience.num_workers,
     )
+    best_score = 0.
+    best_model = None
 
     # """""""""""""""""" Create Network """"""""""""""""""""""""""
     net = getter.get_model(cfg.model)
-
-    if cfg.general.freeze_batch_norm:
-        net = lib.freeze_batch_norm(net)
 
     if cfg.experience.resume:
         net.load_state_dict(state['net_state'])
@@ -119,7 +118,7 @@ def run(cfg):
         logging.info("Model is parallelized")
         net = nn.DataParallel(net)
 
-        if cfg.general.parallel_crit:
+        if cfg.experience.parallel_crit:
             logging.info("Loss will be computed on multiple devices")
             criterion = [(nn.DataParallel(crit), w) for crit, w in criterion]
 
@@ -130,7 +129,7 @@ def run(cfg):
     logging.info(f"Training of model {cfg.experience.experiment_name}")
 
     metrics = None
-    for e in range(1 + restore_epoch, cfg.general.max_iter + 1):
+    for e in range(1 + restore_epoch, cfg.experience.max_iter + 1):
         metrics = None
 
         logging.info(f"Training : @epoch #{e} for model {cfg.experience.experiment_name}")
@@ -140,15 +139,16 @@ def run(cfg):
         loader = DataLoader(
             train_dts,
             batch_sampler=sampler,
-            num_workers=cfg.general.num_workers,
-            pin_memory=True
+            num_workers=cfg.experience.num_workers,
+            pin_memory=cfg.experience.pin_memory,
         )
         logs = eng.base_update(
             net=net,
             loader=loader,
             criterion=criterion,
             optimizer=optimizer,
-            scheduler=None,
+            scheduler=scheduler,
+            epoch=e,
             memory=memory,
         )
 
@@ -158,7 +158,8 @@ def run(cfg):
         end_train_time = time()
 
         # """""""""""""""""" Evaluate Model """"""""""""""""""""""""""
-        if (e % cfg.general.val_freq == 0) or (e == cfg.general.max_iter):
+        score = None
+        if (e % cfg.experience.val_freq == 0) or (e == cfg.experience.max_iter):
             logging.info(f"Evaluation : @epoch #{e} for model {cfg.experience.experiment_name}")
             torch.cuda.empty_cache()
             metrics = eng.evaluate(
@@ -166,10 +167,14 @@ def run(cfg):
                 net,
                 epoch=e,
                 tester=tester,
-                batch_size=cfg.general.val_bs,
-                num_workers=cfg.general.num_workers,
+                batch_size=cfg.experience.val_bs,
+                num_workers=cfg.experience.num_workers,
             )
             torch.cuda.empty_cache()
+            score = metrics[cfg.experience.principal_metric]
+            if score > best_score:
+                best_model = "epoch_{e}"
+                best_score = score
 
             for sch, key in scheduler["on_val"]:
                 scheduler.step(metrics[key])
@@ -177,7 +182,7 @@ def run(cfg):
         # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
         eng.checkpoint(
             log_dir=log_dir,
-            save_checkpoint=(e % cfg.general.val_freq == 0),
+            save_checkpoint=(e % cfg.experience.val_freq == 0),
             net=net,
             optimizer=optimizer,
             scheduler=scheduler,
@@ -185,6 +190,9 @@ def run(cfg):
             seed=cfg.experience.seed,
             args=cfg,
             writer=writer,
+            score=score,
+            best_model=best_model,
+            best_score=best_score,
         )
 
         # """""""""""""""""" Logging Step """"""""""""""""""""""""""

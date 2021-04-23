@@ -4,8 +4,6 @@ defaults:
 
     - dataset: sop
 
-    - general: sop
-
     - loss: smoothap
 
     - memory: default
@@ -16,6 +14,6 @@ defaults:
 
     - transform: sop
 
-# hydra:
-#   run:
-#     dir: ${experience.log_dir}/${experience.experiment_name}/outputs
+hydra:
+  run:
+    dir: ${experience.log_dir}/${experience.experiment_name}/outputs

@@ -3,3 +3,10 @@ experiment_name: ???
 log_dir: "${env:WORK}/experiments/neurips"
 seed: ???
 resume: null
+
+max_iter: 50
+val_bs: 96
+val_freq: 5
+num_workers: 10
+freeze_batch_norm: True
+parallel_crit:

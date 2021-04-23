@@ -10,10 +10,12 @@ def get_mask(lst):
 
 class XBM(nn.Module):
 
-    def __init__(self, size, unique=True):
+    def __init__(self, size, weight=1.0, activate_after=-1, unique=True):
         super().__init__()
         self.size = tuple(size)
         self.unique = unique
+        self.weight = weight
+        self.activate_after = activate_after
 
         self.features_memory = nn.Parameter(torch.zeros(self.size, dtype=torch.float), requires_grad=False)
         self.labels_memory = nn.Parameter(torch.zeros((self.size[0], 1), dtype=torch.float), requires_grad=False)

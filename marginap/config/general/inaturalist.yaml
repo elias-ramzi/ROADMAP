@@ -1,7 +1,0 @@
-# @package _group_
-max_iter: 90
-val_bs: 96
-val_freq: 5
-num_workers: 16
-freeze_batch_norm: True
-parallel_crit:
