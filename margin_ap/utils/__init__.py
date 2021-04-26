@@ -6,6 +6,7 @@ from .extract_progress import extract_progress
 from .format_time import format_time
 from .freeze_batch_norm import freeze_batch_norm
 from .get_lr import get_lr
+from .override_config import override_config
 from .set_initial_lr import set_initial_lr
 
 
@@ -18,5 +19,6 @@ __all__ = [
     'format_time',
     'freeze_batch_norm',
     'get_lr',
+    'override_config',
     'set_initial_lr',
 ]

@@ -1,4 +1,14 @@
-kfold: 4
-loss:
-  kwargs:
-    temp: [0.001, 0.005, 0.01, 0.5, 1]
+# @package _group_
+num_samples: 10
+
+grace_period: 3
+max_t: 100
+
+num_cpus: 16
+num_gpus: 1
+
+
+hyperparameters:
+  - key: loss.0.kwargs.temp
+    type: uniform
+    values: [0.001, 0.5]

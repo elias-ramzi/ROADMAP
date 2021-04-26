@@ -3,6 +3,7 @@ from time import time
 
 import torch
 from torch.utils.data import DataLoader
+from ray import tune
 
 import utils as lib
 from .base_update import base_update
@@ -11,7 +12,7 @@ from .checkpoint import checkpoint
 
 
 def train(
-    cfg,
+    config,
     log_dir,
     net,
     criterion,
@@ -26,23 +27,23 @@ def train(
     restore_epoch,
 ):
     # """""""""""""""""" Iter over epochs """"""""""""""""""""""""""
-    logging.info(f"Training of model {cfg.experience.experiment_name}")
+    logging.info(f"Training of model {config.experience.experiment_name}")
     best_score = 0.
     best_model = None
 
     metrics = None
-    for e in range(1 + restore_epoch, cfg.experience.max_iter + 1):
+    for e in range(1 + restore_epoch, config.experience.max_iter + 1):
         metrics = None
 
-        logging.info(f"Training : @epoch #{e} for model {cfg.experience.experiment_name}")
+        logging.info(f"Training : @epoch #{e} for model {config.experience.experiment_name}")
         start_time = time()
 
         # """""""""""""""""" Training Loop """"""""""""""""""""""""""
         loader = DataLoader(
             train_dts,
             batch_sampler=sampler,
-            num_workers=cfg.experience.num_workers,
-            pin_memory=cfg.experience.pin_memory,
+            num_workers=config.experience.num_workers,
+            pin_memory=config.experience.pin_memory,
         )
         logs = base_update(
             net=net,
@@ -61,22 +62,24 @@ def train(
 
         # """""""""""""""""" Evaluate Model """"""""""""""""""""""""""
         score = None
-        if (e % cfg.experience.val_freq == 0) or (e == cfg.experience.max_iter):
-            logging.info(f"Evaluation : @epoch #{e} for model {cfg.experience.experiment_name}")
+        if (e % config.experience.val_freq == 0) or (e == config.experience.max_iter):
+            logging.info(f"Evaluation : @epoch #{e} for model {config.experience.experiment_name}")
             torch.cuda.empty_cache()
             metrics = evaluate(
                 test_dts,
                 net,
                 epoch=e,
                 tester=tester,
-                batch_size=cfg.experience.val_bs,
-                num_workers=cfg.experience.num_workers,
+                batch_size=config.experience.val_bs,
+                num_workers=config.experience.num_workers,
             )
             torch.cuda.empty_cache()
-            score = metrics[cfg.experience.principal_metric]
+            score = metrics[config.experience.principal_metric]
             if score > best_score:
                 best_model = "epoch_{e}"
                 best_score = score
+
+            tune.report(accuracy=score)
 
             for sch, key in scheduler["on_val"]:
                 scheduler.step(metrics[key])
@@ -84,13 +87,13 @@ def train(
         # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
         checkpoint(
             log_dir=log_dir,
-            save_checkpoint=(e % cfg.experience.val_freq == 0),
+            save_checkpoint=(e % config.experience.val_freq == 0),
             net=net,
             optimizer=optimizer,
             scheduler=scheduler,
             epoch=e,
-            seed=cfg.experience.seed,
-            args=cfg,
+            seed=config.experience.seed,
+            args=config,
             writer=writer,
             score=score,
             best_model=best_model,

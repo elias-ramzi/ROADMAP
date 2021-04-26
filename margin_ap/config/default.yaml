@@ -2,6 +2,8 @@ defaults:
 
     - experience: cnam
 
+    - grid_search: smoothap
+
     - dataset: sop
 
     - loss: smoothap
