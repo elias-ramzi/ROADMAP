@@ -4,15 +4,12 @@ import sys
 import logging
 import random
 import numpy as np
-from time import time
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import hydra
 
-import utils as lib
 import engine as eng
 from getter import Getter
 
@@ -23,26 +20,25 @@ def run(cfg):
     log_dir = os.path.expandvars(cfg.experience.log_dir)
     log_dir = os.path.expanduser(log_dir)
     log_dir = join(log_dir, cfg.experience.experiment_name)
+
     if os.path.isdir(log_dir) and not cfg.experience.resume:
         logging.warning(f"Existing {log_dir}, folder already exists")
         return
 
+    os.makedirs(join(log_dir, "logs"), exist_ok=True)
+    os.makedirs(join(log_dir, "weights"), exist_ok=True)
     if not cfg.experience.resume:
         state = None
         restore_epoch = 0
-        os.makedirs(join(log_dir, "logs"))
-        os.makedirs(join(log_dir, "weights"))
     else:
         if not os.path.isfile(cfg.experience.resume):
-            logging.info(f"Resuming from state : {join(log_dir, 'weights', cfg.experience.resume)}")
-            state = torch.load(join(log_dir, 'weights', cfg.experience.resume), map_location='cpu')
+            resume = join(log_dir, 'weights', cfg.experience.resume)
         else:
             resume = os.path.expandvars(cfg.experience.resume)
             resume = os.path.expanduser(resume)
-            logging.info(f"Resuming from state : {resume}")
-            state = torch.load(resume, map_location='cpu')
-            os.makedirs(join(log_dir, "logs"))
-            os.makedirs(join(log_dir, "weights"))
+
+        logging.info(f"Resuming from state : {resume}")
+        state = torch.load(resume, map_location='cpu')
         restore_epoch = state['epoch']
 
     writer = SummaryWriter(join(log_dir, "logs"), purge_step=restore_epoch)
@@ -71,8 +67,6 @@ def run(cfg):
     tester = eng.get_tester(
         dataset=test_dts, exclude_ranks=None, batch_size=cfg.experience.val_bs, num_workers=cfg.experience.num_workers,
     )
-    best_score = 0.
-    best_model = None
 
     # """""""""""""""""" Create Network """"""""""""""""""""""""""
     net = getter.get_model(cfg.model)
@@ -118,106 +112,21 @@ def run(cfg):
     net.cuda()
     _ = [crit.cuda() for crit, _ in criterion]
 
-    # """""""""""""""""" Iter over epochs """"""""""""""""""""""""""
-    logging.info(f"Training of model {cfg.experience.experiment_name}")
-
-    metrics = None
-    for e in range(1 + restore_epoch, cfg.experience.max_iter + 1):
-        metrics = None
-
-        logging.info(f"Training : @epoch #{e} for model {cfg.experience.experiment_name}")
-        start_time = time()
-
-        # """""""""""""""""" Training Loop """"""""""""""""""""""""""
-        loader = DataLoader(
-            train_dts,
-            batch_sampler=sampler,
-            num_workers=cfg.experience.num_workers,
-            pin_memory=cfg.experience.pin_memory,
-        )
-        logs = eng.base_update(
-            net=net,
-            loader=loader,
-            criterion=criterion,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            epoch=e,
-            memory=memory,
-        )
-
-        for sch in scheduler["on_epoch"]:
-            scheduler.step()
-
-        end_train_time = time()
-
-        # """""""""""""""""" Evaluate Model """"""""""""""""""""""""""
-        score = None
-        if (e % cfg.experience.val_freq == 0) or (e == cfg.experience.max_iter):
-            logging.info(f"Evaluation : @epoch #{e} for model {cfg.experience.experiment_name}")
-            torch.cuda.empty_cache()
-            metrics = eng.evaluate(
-                test_dts,
-                net,
-                epoch=e,
-                tester=tester,
-                batch_size=cfg.experience.val_bs,
-                num_workers=cfg.experience.num_workers,
-            )
-            torch.cuda.empty_cache()
-            score = metrics[cfg.experience.principal_metric]
-            if score > best_score:
-                best_model = "epoch_{e}"
-                best_score = score
-
-            for sch, key in scheduler["on_val"]:
-                scheduler.step(metrics[key])
-
-        # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
-        eng.checkpoint(
-            log_dir=log_dir,
-            save_checkpoint=(e % cfg.experience.val_freq == 0),
-            net=net,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            epoch=e,
-            seed=cfg.experience.seed,
-            args=cfg,
-            writer=writer,
-            score=score,
-            best_model=best_model,
-            best_score=best_score,
-        )
-
-        # """""""""""""""""" Logging Step """"""""""""""""""""""""""
-        for grp, opt in optimizer.items():
-            writer.add_scalar(f"LR/{grp}", list(lib.get_lr(optimizer).values())[0], e)
-
-        for k, v in logs.items():
-            logging.info(f"{k} : {v:.4f}")
-            writer.add_scalar(f"Train/{k}", v, e)
-
-        if metrics is not None:
-            for k, v in metrics['test'].items():
-                if k == 'epoch':
-                    continue
-                logging.info(f"{k} : {v:.4f}")
-                writer.add_scalar(f"Evaluation/{k}", v, e)
-
-        end_time = time()
-
-        elapsed_time = lib.format_time(end_time - start_time)
-        elapsed_time_train = lib.format_time(end_train_time - start_time)
-        elapsed_time_eval = lib.format_time(end_time - end_train_time)
-
-        logging.info(f"Epoch took : {elapsed_time}")
-        logging.info(f"Training loop took : {elapsed_time_train}")
-        if metrics is not None:
-            logging.info(f"Evaluation step took : {elapsed_time_eval}")
-
-        print()
-        print()
-
-    return metrics
+    return eng.train(
+        cfg=cfg,
+        log_dir=log_dir,
+        net=net,
+        criterion=criterion,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        memory=memory,
+        train_dts=train_dts,
+        test_dts=test_dts,
+        sampler=sampler,
+        tester=tester,
+        writer=writer,
+        restore_epoch=restore_epoch,
+    )
 
 
 if __name__ == '__main__':
