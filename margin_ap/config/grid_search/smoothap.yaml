@@ -1,8 +1,7 @@
 # @package _group_
 num_samples: 10
 
-grace_period: 3
-max_t: 100
+grace_period: 10
 
 num_cpus: 16
 num_gpus: 1
@@ -10,5 +9,5 @@ num_gpus: 1
 
 hyperparameters:
   - key: loss.0.kwargs.temp
-    type: uniform
-    values: [0.001, 0.5]
+    type: choice
+    values: [0.01]

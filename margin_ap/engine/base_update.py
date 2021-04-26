@@ -1,5 +1,6 @@
+import logging
+
 import torch
-from tqdm import tqdm
 
 import utils as lib
 
@@ -63,8 +64,7 @@ def base_update(
 ):
     meter = lib.DictAverage()
 
-    iterator = tqdm(loader, desc=f'Running epoch {epoch} on loader')
-    for i, batch in enumerate(iterator):
+    for i, batch in enumerate(loader):
         logs = _batch_optimization(
             net,
             batch,
@@ -74,14 +74,17 @@ def base_update(
         )
 
         for opt in optimizer.values():
-            optimizer.step()
-            optimizer.zero_grad()
+            opt.step()
+            opt.zero_grad()
         _ = [crit.zero_grad() for crit, w in criterion]
 
         for sch in scheduler["on_step"]:
             sch.step()
 
         meter.update(logs)
-        iterator.set_postfix({k: f"{v:0.4f}" for k, v in meter.avg.items()})
+        if i % 50 == 0:
+            logging.info(f'Iteration : {i}/{len(loader)}')
+            for k, v in logs.items():
+                logging.info(f'Loss: {k}: {v:.4f} ')
 
     return meter.avg

@@ -11,3 +11,5 @@ matplotlib
 pytorch-metric-learning
 timm
 hydra-core
+ray[tune]
+ray[default]

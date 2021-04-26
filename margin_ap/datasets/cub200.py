@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from torchvision import datasets
 
@@ -11,7 +13,7 @@ class Cub200Dataset(BaseDataset):
         self.mode = mode
         self.transform = transform
 
-        dataset = datasets.ImageFolder(self.data_dir)
+        dataset = datasets.ImageFolder(os.path.join(self.data_dir, 'images'))
         paths = np.array([a for (a, b) in dataset.imgs])
         labels = np.array([b for (a, b) in dataset.imgs])
 
@@ -27,3 +29,7 @@ class Cub200Dataset(BaseDataset):
             if lb in set_labels:
                 self.paths.append(pth)
                 self.labels.append(lb)
+
+        self.instance_dict = {cl: [] for cl in set(self.labels)}
+        for idx, cl in enumerate(self.labels):
+            self.instance_dict[cl].append(idx)

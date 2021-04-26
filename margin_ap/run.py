@@ -1,6 +1,4 @@
-import os
 from os.path import join
-import sys
 import logging
 import random
 import numpy as np
@@ -8,14 +6,15 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
+from ray import tune
 
 import utils as lib
 import engine as eng
 from getter import Getter
 
 
-def run(config, base_config=None):
-    # """""""""""""""""" Handle Logging """"""""""""""""""""""""""
+def run(config, base_config=None, checkpoint_dir=None):
+    # """""""""""""""""" Handle Config """"""""""""""""""""""""""
     if base_config is not None:
         config = lib.override_config(
             hyperparameters=config,
@@ -23,36 +22,21 @@ def run(config, base_config=None):
         )
 
     # """""""""""""""""" Handle Logging """"""""""""""""""""""""""
-    log_dir = os.path.expandvars(config.experience.log_dir)
-    log_dir = os.path.expanduser(log_dir)
-    log_dir = join(log_dir, config.experience.experiment_name)
+    logging.basicConfig(
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p',
+        level=logging.INFO,
+    )
 
-    if os.path.isdir(log_dir) and not config.experience.resume:
-        logging.warning(f"Existing {log_dir}, folder already exists")
-        return
-
-    os.makedirs(join(log_dir, "logs"), exist_ok=True)
-    os.makedirs(join(log_dir, "weights"), exist_ok=True)
-    if not config.experience.resume:
+    if checkpoint_dir is None:
         state = None
         restore_epoch = 0
     else:
-        if not os.path.isfile(config.experience.resume):
-            resume = join(log_dir, 'weights', config.experience.resume)
-        else:
-            resume = os.path.expandvars(config.experience.resume)
-            resume = os.path.expanduser(resume)
-
-        logging.info(f"Resuming from state : {resume}")
-        state = torch.load(resume, map_location='cpu')
+        logging.info(f"Resuming from state : {checkpoint_dir}")
+        state = torch.load(checkpoint_dir, map_location='cpu')
         restore_epoch = state['epoch']
 
-    writer = SummaryWriter(join(log_dir, "logs"), purge_step=restore_epoch)
-
-    if not os.path.isfile(join(log_dir, "entry_point.txt")):
-        command = 'python ' + ' '.join(sys.argv)
-        with open(join(log_dir, "entry_point.txt"), 'w') as f:
-            f.write(command)
+    writer = SummaryWriter(join(tune.get_trial_dir(), "logs"), purge_step=restore_epoch)
 
     logging.info(f"Training with seed {config.experience.seed}")
     torch.manual_seed(config.experience.seed)
@@ -81,15 +65,12 @@ def run(config, base_config=None):
         net.load_state_dict(state['net_state'])
         net.cuda()
 
-    # """""""""""""""""" Create Optimizer """"""""""""""""""""""""""
-    optimizer = getter.get_optimizer(net, config.optimizer.optimizer)
+    # """""""""""""""""" Create Optimizer & Scheduler """"""""""""""""""""""""""
+    optimizer, scheduler = getter.get_optimizer(net, config.optimizer)
 
     if config.experience.resume:
-        for opt, opt_state in zip(optimizer, state['optimizer_state']):
-            opt.load_state_dict(opt_state)
-
-    # """""""""""""""""" Create Scheduler """"""""""""""""""""""""""
-    scheduler = getter.get_scheduler(optimizer, config.optimizer.scheduler)
+        for key, opt in optimizer.items():
+            opt.load_state_dict(state['optimizer_state'][key])
 
     if config.experience.resume:
         for key, schs in scheduler.items():
@@ -120,7 +101,7 @@ def run(config, base_config=None):
 
     return eng.train(
         config=config,
-        log_dir=log_dir,
+        # log_dir=log_dir,
         net=net,
         criterion=criterion,
         optimizer=optimizer,

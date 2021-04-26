@@ -8,7 +8,8 @@ max_iter: 50
 
 val_bs: 96
 val_freq: 5
-principal_metric: 'recall_at_1_level0'
+save_model: 5
+principal_metric: recall_at_1_level0
 
 num_workers: 16
 pin_memory: True

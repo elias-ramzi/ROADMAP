@@ -8,12 +8,12 @@ from ray import tune
 import utils as lib
 from .base_update import base_update
 from .evaluate import evaluate
-from .checkpoint import checkpoint
+from . import checkpoint
 
 
 def train(
     config,
-    log_dir,
+    # log_dir,
     net,
     criterion,
     optimizer,
@@ -56,7 +56,7 @@ def train(
         )
 
         for sch in scheduler["on_epoch"]:
-            scheduler.step()
+            sch.step()
 
         end_train_time = time()
 
@@ -79,22 +79,21 @@ def train(
                 best_model = "epoch_{e}"
                 best_score = score
 
-            tune.report(accuracy=score)
+            tune.report(**metrics)
 
             for sch, key in scheduler["on_val"]:
-                scheduler.step(metrics[key])
+                sch.step(metrics[key])
 
         # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
         checkpoint(
-            log_dir=log_dir,
-            save_checkpoint=(e % config.experience.val_freq == 0),
+            # log_dir=log_dir,
+            save_checkpoint=(e % config.experience.save_model == 0),
             net=net,
             optimizer=optimizer,
             scheduler=scheduler,
             epoch=e,
             seed=config.experience.seed,
             args=config,
-            writer=writer,
             score=score,
             best_model=best_model,
             best_score=best_score,
@@ -102,14 +101,14 @@ def train(
 
         # """""""""""""""""" Logging Step """"""""""""""""""""""""""
         for grp, opt in optimizer.items():
-            writer.add_scalar(f"LR/{grp}", list(lib.get_lr(optimizer).values())[0], e)
+            writer.add_scalar(f"LR/{grp}", list(lib.get_lr(opt).values())[0], e)
 
         for k, v in logs.items():
             logging.info(f"{k} : {v:.4f}")
             writer.add_scalar(f"Train/{k}", v, e)
 
         if metrics is not None:
-            for k, v in metrics['test'].items():
+            for k, v in metrics.items():
                 if k == 'epoch':
                     continue
                 logging.info(f"{k} : {v:.4f}")

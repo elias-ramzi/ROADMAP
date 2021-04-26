@@ -6,7 +6,7 @@ def set_attribute(cfg, key, value):
             obj = obj[int(k)]
         except ValueError:
             obj = getattr(obj, k)
-    setattr(obj, key[-1], value)
+    setattr(obj, all_key[-1], value)
     return cfg
 
 
