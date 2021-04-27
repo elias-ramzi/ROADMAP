@@ -4,12 +4,20 @@ import hydra
 from ray import tune
 from ray.tune.schedulers import ASHAScheduler
 
-import utils as lib
 import run
+import utils as lib
+import engine as eng
+from getter import Getter
 
 
 @hydra.main(config_path='config', config_name='default')
 def hyperparameters_search(cfg):
+    # train_dts = Getter().get_dataset(None, 'train', cfg.dataset)
+    # splits = getattr(eng, cfg.dataset.split_type)(
+    #     train_dts.labels,
+    #     kfold=cfg.grid_search.kfold,
+    #         )
+
     search_space = {}
     for item in cfg.grid_search.hyperparameters:
         try:

@@ -1,0 +1,17 @@
+# @package _group_
+num_samples: 50
+
+grace_period: 5
+
+num_cpus: 16
+num_gpus: 1
+
+
+hyperparameters:
+  - key: loss.0.kwargs.tau
+    type: uniform
+    values: [0.01, 1.5]
+
+  - key: loss.0.kwargs.mu
+    type: uniform
+    values: [0.01, 0.1]

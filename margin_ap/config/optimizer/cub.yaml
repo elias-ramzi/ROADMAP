@@ -1,9 +1,10 @@
 # @package _group_
-- name: Adam
+- name: RMSprop
   params: backbone
   kwargs:
-    lr: 0.00001
+    lr: 0.000001
     weight_decay: 0.0001
+    momentum: 0.9
   scheduler_on_epoch:
   scheduler_on_step:
   scheduler_on_val:
@@ -11,15 +12,16 @@
     key: recall_at_1_level0
     kwargs:
       mode: max
-      factor: 0.3
-      patience: 5
-      cooldown: 2
+      factor: 0.1
+      patience: 4
+      cooldown: 0
 
-- name: Adam
+- name: RMSprop
   params: fc
   kwargs:
-    lr: 0.00001
+    lr: 0.000001
     weight_decay: 0.0001
+    momentum: 0.9
   scheduler_on_epoch:
   scheduler_on_step:
   scheduler_on_val:
@@ -27,6 +29,6 @@
     key: recall_at_1_level0
     kwargs:
       mode: max
-      factor: 0.3
-      patience: 5
-      cooldown: 2
+      factor: 0.1
+      patience: 4
+      cooldown: 0

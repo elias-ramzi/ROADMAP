@@ -9,3 +9,5 @@ sampler:
     batch_size: 128
     samples_per_class: 4
     batches_per_super_pair: 10
+
+split_type: get_hierarchical_class_disjoint_splits
