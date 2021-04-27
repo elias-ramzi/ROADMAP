@@ -24,6 +24,7 @@ class MPerClassSampler:
                         image idxs having the same super-label and class label
         """
         assert samples_per_class > 1
+        assert batch_size % samples_per_class == 0
         self.image_dict = dataset.instance_dict.copy()
         self.batch_size = batch_size
         self.samples_per_class = samples_per_class

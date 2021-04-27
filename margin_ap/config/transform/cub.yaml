@@ -5,7 +5,7 @@ train:
   RandomResizedCrop:
     scale: [0.16, 1]
     ratio: [0.75, 1.33]
-    size: 224
+    size: 227
   RandomHorizontalFlip:
     p: 0.5
   ToTensor: {}
@@ -17,7 +17,7 @@ test:
   Resize:
     size: 256
   CenterCrop:
-    size: 224
+    size: 227
   ToTensor: {}
   Normalize:
     mean: [0.485, 0.456, 0.406]

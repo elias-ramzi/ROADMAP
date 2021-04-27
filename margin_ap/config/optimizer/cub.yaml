@@ -8,13 +8,6 @@
   scheduler_on_epoch:
   scheduler_on_step:
   scheduler_on_val:
-    name: ReduceLROnPlateau
-    key: recall_at_1_level0
-    kwargs:
-      mode: max
-      factor: 0.1
-      patience: 4
-      cooldown: 0
 
 - name: RMSprop
   params: fc
@@ -25,10 +18,3 @@
   scheduler_on_epoch:
   scheduler_on_step:
   scheduler_on_val:
-    name: ReduceLROnPlateau
-    key: recall_at_1_level0
-    kwargs:
-      mode: max
-      factor: 0.1
-      patience: 4
-      cooldown: 0

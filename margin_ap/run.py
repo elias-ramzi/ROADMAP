@@ -1,10 +1,13 @@
+import os
 from os.path import join
 import logging
 import random
 import numpy as np
+from copy import deepcopy
 
 import torch
 import torch.nn as nn
+from torch.utils.data import Subset
 from torch.utils.tensorboard import SummaryWriter
 from ray import tune
 
@@ -13,13 +16,20 @@ import engine as eng
 from getter import Getter
 
 
-def run(config, base_config=None, checkpoint_dir=None):
+def run(config, base_config=None, checkpoint_dir=None, splits=None):
     # """""""""""""""""" Handle Config """"""""""""""""""""""""""
     if base_config is not None:
+        log_dir = None
         config = lib.override_config(
             hyperparameters=config,
             config=base_config,
         )
+
+    else:
+        log_dir = lib.expand_path(config.experience.log_dir)
+        log_dir = join(log_dir, config.experience.experiment_name)
+        os.makedirs(join(log_dir, 'logs'), exist_ok=True)
+        os.makedirs(join(log_dir, 'weights'), exist_ok=True)
 
     # """""""""""""""""" Handle Logging """"""""""""""""""""""""""
     logging.basicConfig(
@@ -36,7 +46,10 @@ def run(config, base_config=None, checkpoint_dir=None):
         state = torch.load(checkpoint_dir, map_location='cpu')
         restore_epoch = state['epoch']
 
-    writer = SummaryWriter(join(tune.get_trial_dir(), "logs"), purge_step=restore_epoch)
+    if log_dir is None:
+        writer = SummaryWriter(join(tune.get_trial_dir(), "logs"), purge_step=restore_epoch)
+    else:
+        writer = SummaryWriter(join(log_dir, "logs"), purge_step=restore_epoch)
 
     logging.info(f"Training with seed {config.experience.seed}")
     torch.manual_seed(config.experience.seed)
@@ -50,7 +63,17 @@ def run(config, base_config=None, checkpoint_dir=None):
     # """""""""""""""""" Create Data """"""""""""""""""""""""""
     train_transform = getter.get_transform(config.transform.train)
     test_transform = getter.get_transform(config.transform.test)
-    train_dts = getter.get_dataset(train_transform, 'train', config.dataset)
+    trainval_dts = getter.get_dataset(train_transform, 'train', config.dataset)
+    if splits is not None:
+        train_dts = Subset(deepcopy(trainval_dts), splits['train'])
+        val_dts = Subset(deepcopy(trainval_dts), splits['val'])
+        val_dts.dataset.transform = test_transform
+        val_dts.dataset.mode = 'val'
+        logging.info(val_dts.dataset)
+    else:
+        train_dts = trainval_dts
+        val_dts = None
+
     test_dts = getter.get_dataset(test_transform, 'test', config.dataset)
     sampler = getter.get_sampler(train_dts, config.dataset.sampler)
 
@@ -61,18 +84,18 @@ def run(config, base_config=None, checkpoint_dir=None):
     # """""""""""""""""" Create Network """"""""""""""""""""""""""
     net = getter.get_model(config.model)
 
-    if config.experience.resume:
+    if checkpoint_dir:
         net.load_state_dict(state['net_state'])
         net.cuda()
 
     # """""""""""""""""" Create Optimizer & Scheduler """"""""""""""""""""""""""
     optimizer, scheduler = getter.get_optimizer(net, config.optimizer)
 
-    if config.experience.resume:
+    if checkpoint_dir:
         for key, opt in optimizer.items():
             opt.load_state_dict(state['optimizer_state'][key])
 
-    if config.experience.resume:
+    if checkpoint_dir:
         for key, schs in scheduler.items():
             for sch, sch_state in zip(optimizer, state[f'scheduler_{key}_state']):
                 sch.load_state_dict(sch_state)
@@ -101,13 +124,14 @@ def run(config, base_config=None, checkpoint_dir=None):
 
     return eng.train(
         config=config,
-        # log_dir=log_dir,
+        log_dir=log_dir,
         net=net,
         criterion=criterion,
         optimizer=optimizer,
         scheduler=scheduler,
         memory=memory,
         train_dts=train_dts,
+        val_dts=val_dts,
         test_dts=test_dts,
         sampler=sampler,
         tester=tester,

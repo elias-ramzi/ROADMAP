@@ -2,5 +2,5 @@
 - name: MarginAP
   weight: 1.0
   kwargs:
-    mu: 0.05
-    tau: 0.05
+    mu: 0.025
+    tau: 1.

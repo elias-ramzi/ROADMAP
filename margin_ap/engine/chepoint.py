@@ -6,7 +6,7 @@ from ray import tune
 
 
 def checkpoint(
-    # log_dir,
+    log_dir,
     save_checkpoint,
     net,
     optimizer,
@@ -37,8 +37,15 @@ def checkpoint(
     state_dict["best_score"] = best_score
     state_dict["best_model"] = f"{best_model}.ckpt"
 
-    torch.save(state_dict, join(tune.get_trial_dir(), "rolling.ckpt"))
-    if save_checkpoint:
-        with tune.checkpoint_dir(step=epoch) as checkpoint_dir:
+    if log_dir is None:
+        torch.save(state_dict, join(tune.get_trial_dir(), "rolling.ckpt"))
+        if save_checkpoint:
+            with tune.checkpoint_dir(step=epoch) as checkpoint_dir:
+                logging.info(f"Checkpoint of epoch {epoch} created")
+                torch.save(state_dict, join(checkpoint_dir, f"epoch_{epoch}.ckpt"))
+
+    else:
+        torch.save(state_dict, join(log_dir, 'weights', "rolling.ckpt"))
+        if save_checkpoint:
             logging.info(f"Checkpoint of epoch {epoch} created")
-            torch.save(state_dict, join(checkpoint_dir, f"epoch_{epoch}.ckpt"))
+            torch.save(state_dict, join(log_dir, 'weights', f"epoch_{epoch}.ckpt"))

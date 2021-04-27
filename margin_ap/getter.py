@@ -34,8 +34,12 @@ class Getter:
         }
         for opt in config:
             optimizer = getattr(optim, opt.name)
-            optimizer = optimizer(getattr(net, opt.params).parameters(), **opt.kwargs)
-            optimizers[opt.params] = optimizer
+            if opt.params is not None:
+                optimizer = optimizer(getattr(net, opt.params).parameters(), **opt.kwargs)
+                optimizers[opt.params] = optimizer
+            else:
+                optimizer = optimizer(net.parameters(), **opt.kwargs)
+                optimizers["net"] = optimizer
             logging.info(optimizer)
             if opt.scheduler_on_epoch is not None:
                 schedulers["on_epoch"].append(self.get_scheduler(optimizer, opt.scheduler_on_epoch))

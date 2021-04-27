@@ -13,9 +13,14 @@ from getter import Getter
 @hydra.main(config_path='config', config_name='default')
 def hyperparameters_search(cfg):
     # train_dts = Getter().get_dataset(None, 'train', cfg.dataset)
-    # splits = getattr(eng, cfg.dataset.split_type)(
+    # super_labels = None
+    # if hasattr(train_dts, 'super_labels'):
+    #     super_labels = train_dts.super_labels
+    # splits = eng.get_splits(
     #     train_dts.labels,
+    #     super_labels,
     #     kfold=cfg.grid_search.kfold,
+    #     random_state=0
     #         )
 
     search_space = {}
@@ -42,10 +47,9 @@ def hyperparameters_search(cfg):
         name=cfg.experience.experiment_name,
     )
 
-    best_trial = result.get_best_trial("accuracy", "max", "last")
+    best_trial = result.get_best_trial(cfg.experience.principal_metric, "max", "last")
     print("Best trial config: {}".format(best_trial.config))
-    print("Best trial final validation accuracy: {}".format(
-        best_trial.last_result["accuracy"]))
+    print("Best trial final validation accuracy: {}".format(best_trial.last_result[cfg.experience.principal_metric]))
 
 
 if __name__ == '__main__':

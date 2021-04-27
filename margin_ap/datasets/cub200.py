@@ -22,6 +22,8 @@ class Cub200Dataset(BaseDataset):
             set_labels = set(sorted_lb[:len(sorted_lb) // 2])
         elif mode == 'test':
             set_labels = set(sorted_lb[len(sorted_lb) // 2:])
+        elif mode == 'all':
+            set_labels = sorted_lb
 
         self.paths = []
         self.labels = []

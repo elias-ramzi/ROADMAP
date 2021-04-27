@@ -13,13 +13,14 @@ from . import checkpoint
 
 def train(
     config,
-    # log_dir,
+    log_dir,
     net,
     criterion,
     optimizer,
     scheduler,
     memory,
     train_dts,
+    val_dts,
     test_dts,
     sampler,
     tester,
@@ -39,6 +40,7 @@ def train(
         start_time = time()
 
         # """""""""""""""""" Training Loop """"""""""""""""""""""""""
+        sampler.reshuffle()
         loader = DataLoader(
             train_dts,
             batch_sampler=sampler,
@@ -79,14 +81,15 @@ def train(
                 best_model = "epoch_{e}"
                 best_score = score
 
-            tune.report(**metrics)
+            if log_dir is None:
+                tune.report(**metrics)
 
             for sch, key in scheduler["on_val"]:
                 sch.step(metrics[key])
 
         # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
         checkpoint(
-            # log_dir=log_dir,
+            log_dir=log_dir,
             save_checkpoint=(e % config.experience.save_model == 0),
             net=net,
             optimizer=optimizer,

@@ -1,5 +1,5 @@
 # @package _group_
-num_samples: 10
+num_samples: 1
 
 grace_period: 10
 

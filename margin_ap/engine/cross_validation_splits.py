@@ -66,6 +66,13 @@ def get_hierarchical_class_disjoint_splits(labels, super_labels, kfold, random_s
     return splits
 
 
+def get_splits(labels, super_labels, kfold, random_state=None):
+    if super_labels is None:
+        return get_class_disjoint_splits(labels, kfold, random_state)
+    else:
+        return get_hierarchical_class_disjoint_splits(labels, super_labels, kfold, random_state)
+
+
 if __name__ == '__main__':
     random.seed(10)
     num_superlabels = 12
