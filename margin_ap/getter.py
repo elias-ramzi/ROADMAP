@@ -3,12 +3,12 @@ import logging
 from torch import optim
 import torchvision.transforms as transforms
 
-import losses
-import samplers
-import datasets
-import models
-import engine
-import utils as lib
+from margin_ap import losses
+from margin_ap import samplers
+from margin_ap import datasets
+from margin_ap import models
+from margin_ap import engine
+from margin_ap import utils as lib
 
 
 class Getter:
@@ -83,6 +83,7 @@ class Getter:
     def get_model(self, config):
         net = getattr(models, config.name)(**config.kwargs)
         if config.freeze_batch_norm:
+            logging.info("Freezing batch norm")
             net = lib.freeze_batch_norm(net)
         return net
 

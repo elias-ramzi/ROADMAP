@@ -3,8 +3,8 @@ import logging
 
 import hydra
 
-import run
-import utils as lib
+import margin_ap.utils as lib
+from margin_ap import run
 
 
 @hydra.main(config_path='config', config_name='default')

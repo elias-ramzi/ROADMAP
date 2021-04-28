@@ -18,9 +18,11 @@ cd $WORK/Smooth_AP/src
 module purge
 module load pytorch-gpu/py3/1.7.1
 
+export TORCH_HOME=${SCRATCH}/pretrained_models
+
 python main.py \
 --fc_lr_mul 2 \
 --bs 384 \
---dataset inaturalist \
+--dataset Inaturalist \
 --source_path ${SCRATCH} \
 --save_path ${WORK}/inat_smoothap

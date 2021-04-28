@@ -15,3 +15,15 @@ hyperparameters:
   - key: loss.0.kwargs.mu
     type: uniform
     values: [0.01, 0.2]
+
+  - key: loss.1.weight
+    type: uniform
+    values: [0.001, 2]
+
+  - key: loss.1.kwargs.neg_margin
+    type: uniform
+    values: [0.2, 0.7]
+
+  - key: loss.1.kwargs.pos_margin
+    type: uniform
+    values: [0.7, 1.0]

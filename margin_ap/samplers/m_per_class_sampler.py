@@ -3,6 +3,7 @@ adapted from :
 https://github.com/Andrew-Brown1/Smooth_AP/blob/master/src/datasets.py
 """
 import copy
+import logging
 
 import numpy as np
 
@@ -46,6 +47,7 @@ class MPerClassSampler:
         )
 
     def reshuffle(self):
+        logging.info("Shuffling data")
         image_dict = copy.deepcopy(self.image_dict)
         for sub in image_dict:
             np.random.shuffle(image_dict[sub])

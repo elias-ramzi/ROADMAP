@@ -1,0 +1,21 @@
+# @package _group_
+num_samples: 60
+
+grace_period: 10
+
+num_cpus: 4
+num_gpus: 0.333
+
+
+hyperparameters:
+  - key: loss.1.weight
+    type: uniform
+    values: [0.001, 1]
+
+  - key: loss.1.kwargs.neg_margin
+    type: uniform
+    values: [0.2, 0.7]
+
+  - key: loss.1.kwargs.pos_margin
+    type: uniform
+    values: [0.7, 1.0]

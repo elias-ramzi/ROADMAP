@@ -4,10 +4,10 @@ import hydra
 from ray import tune
 from ray.tune.schedulers import ASHAScheduler
 
-import run
-import utils as lib
-import engine as eng
-from getter import Getter
+import margin_ap.utils as lib
+from margin_ap import run
+# from margin_ap import engine as eng
+# from margin_ap.getter import Getter
 
 
 @hydra.main(config_path='config', config_name='default')

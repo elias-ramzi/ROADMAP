@@ -5,7 +5,8 @@ import torch
 from torch.utils.data import DataLoader
 from ray import tune
 
-import utils as lib
+import margin_ap.utils as lib
+
 from .base_update import base_update
 from .evaluate import evaluate
 from . import checkpoint
@@ -23,7 +24,6 @@ def train(
     val_dts,
     test_dts,
     sampler,
-    tester,
     writer,
     restore_epoch,
 ):
@@ -34,7 +34,6 @@ def train(
 
     metrics = None
     for e in range(1 + restore_epoch, config.experience.max_iter + 1):
-        metrics = None
 
         logging.info(f"Training : @epoch #{e} for model {config.experience.experiment_name}")
         start_time = time()
@@ -48,6 +47,7 @@ def train(
             pin_memory=config.experience.pin_memory,
         )
         logs = base_update(
+            config=config,
             net=net,
             loader=loader,
             criterion=criterion,
@@ -62,30 +62,42 @@ def train(
 
         end_train_time = time()
 
-        # """""""""""""""""" Evaluate Model """"""""""""""""""""""""""
-        score = None
-        if (e % config.experience.val_freq == 0) or (e == config.experience.max_iter):
+        dataset_dict = {}
+        if (config.experience.train_eval_freq > -1) and ((e % config.experience.train_eval_freq == 0) or (e == config.experience.max_iter)):
+            dataset_dict["train_dataset"] = train_dts
+
+        if (config.experience.val_eval_freq > -1) and ((e % config.experience.val_eval_freq == 0) or (e == config.experience.max_iter)):
+            dataset_dict["val_dataset"] = val_dts
+
+        if (config.experience.test_eval_freq > -1) and ((e % config.experience.test_eval_freq == 0) or (e == config.experience.max_iter)):
+            dataset_dict["test_dataset"] = test_dts
+
+        metrics = None
+        if dataset_dict:
             logging.info(f"Evaluation : @epoch #{e} for model {config.experience.experiment_name}")
             torch.cuda.empty_cache()
             metrics = evaluate(
-                test_dts,
                 net,
                 epoch=e,
-                tester=tester,
-                batch_size=config.experience.val_bs,
+                batch_size=config.experience.eval_bs,
                 num_workers=config.experience.num_workers,
+                **dataset_dict,
             )
             torch.cuda.empty_cache()
-            score = metrics[config.experience.principal_metric]
+
+        # """""""""""""""""" Evaluate Model """"""""""""""""""""""""""
+        score = None
+        if metrics is not None:
+            score = metrics[config.experience.eval_split][config.experience.principal_metric]
             if score > best_score:
                 best_model = "epoch_{e}"
                 best_score = score
 
             if log_dir is None:
-                tune.report(**metrics)
+                tune.report(**metrics[config.experience.eval_split])
 
             for sch, key in scheduler["on_val"]:
-                sch.step(metrics[key])
+                sch.step(metrics[config.experience.eval_split][key])
 
         # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
         checkpoint(
@@ -111,11 +123,12 @@ def train(
             writer.add_scalar(f"Train/{k}", v, e)
 
         if metrics is not None:
-            for k, v in metrics.items():
-                if k == 'epoch':
-                    continue
-                logging.info(f"{k} : {v:.4f}")
-                writer.add_scalar(f"Evaluation/{k}", v, e)
+            for split, mtrc in metrics.items():
+                for k, v in mtrc.items():
+                    if k == 'epoch':
+                        continue
+                    logging.info(f"{split} --> {k} : {v:.4f}")
+                    writer.add_scalar(f"{split.title()}/Evaluation/{k}", v, e)
 
         end_time = time()
 

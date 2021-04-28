@@ -1,10 +1,10 @@
 # @package _group_
-num_samples: 50
+num_samples: 90
 
 grace_period: 5
 
-num_cpus: 16
-num_gpus: 1
+num_cpus: 4
+num_gpus: 0.333
 
 
 hyperparameters:

@@ -16,8 +16,14 @@ class CustomCalculator(AccuracyCalculator):
     def calculate_recall_at_1(self, knn_labels, query_labels, **kwargs):
         return self.recall_at_k(knn_labels, query_labels[:, None], 1)
 
+    def calculate_recall_at_2(self, knn_labels, query_labels, **kwargs):
+        return self.recall_at_k(knn_labels, query_labels[:, None], 2)
+
     def calculate_recall_at_4(self, knn_labels, query_labels, **kwargs):
         return self.recall_at_k(knn_labels, query_labels[:, None], 4)
+
+    def calculate_recall_at_8(self, knn_labels, query_labels, **kwargs):
+        return self.recall_at_k(knn_labels, query_labels[:, None], 8)
 
     def calculate_recall_at_16(self, knn_labels, query_labels, **kwargs):
         return self.recall_at_k(knn_labels, query_labels[:, None], 16)

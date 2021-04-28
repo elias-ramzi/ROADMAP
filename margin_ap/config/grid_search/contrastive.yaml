@@ -10,7 +10,7 @@ num_gpus: 1
 hyperparameters:
   - key: loss.0.kwargs.neg_margin
     type: uniform
-    values: [0.4, 0.7]
+    values: [0.2, 0.7]
 
   - key: loss.0.kwargs.pos_margin
     type: uniform

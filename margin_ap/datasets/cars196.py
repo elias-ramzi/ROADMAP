@@ -32,3 +32,7 @@ class Cars196Dataset(BaseDataset):
             if lb in set_labels:
                 self.paths.append(pth)
                 self.labels.append(lb)
+
+        self.instance_dict = {cl: [] for cl in set(self.labels)}
+        for idx, cl in enumerate(self.labels):
+            self.instance_dict[cl].append(idx)

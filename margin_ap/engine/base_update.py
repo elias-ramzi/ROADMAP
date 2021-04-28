@@ -2,13 +2,15 @@ import logging
 
 import torch
 
-import utils as lib
+import margin_ap.utils as lib
 
 
 def _batch_optimization(
+    config,
     net,
     batch,
     criterion,
+    optimizer,
     epoch,
     memory
 ):
@@ -46,7 +48,13 @@ def _batch_optimization(
                 logs[f"memory_{crit.__class__.__name__}"] = mem_loss.item()
 
     total_loss = sum(losses)
-    total_loss.backward()
+    if config.experience.apex:
+        from apex import amp
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+            scaled_loss.backward()
+    else:
+        total_loss.backward()
+
     logs["total_loss"] = total_loss.item()
     _ = [loss.detach_() for loss in losses]
     total_loss.detach_()
@@ -54,6 +62,7 @@ def _batch_optimization(
 
 
 def base_update(
+    config,
     net,
     loader,
     criterion,
@@ -66,25 +75,31 @@ def base_update(
 
     for i, batch in enumerate(loader):
         logs = _batch_optimization(
+            config,
             net,
             batch,
             criterion,
+            optimizer,
             epoch,
             memory,
         )
 
-        for opt in optimizer.values():
+        for key, opt in optimizer.items():
+            if epoch < config.experience.warm_up and key != config.experience.warm_up_key:
+                logging.info(f"Warming up @epoch {epoch}")
+                continue
             opt.step()
-            opt.zero_grad()
+
+        net.zero_grad()
         _ = [crit.zero_grad() for crit, w in criterion]
 
         for sch in scheduler["on_step"]:
             sch.step()
 
         meter.update(logs)
-        if i % 50 == 0:
+        if (i + 1) % 50 == 0:
             logging.info(f'Iteration : {i}/{len(loader)}')
             for k, v in logs.items():
-                logging.info(f'Loss: {k}: {v:.4f} ')
+                logging.info(f'Loss: {k}: {v} ')
 
     return meter.avg

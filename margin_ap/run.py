@@ -11,9 +11,9 @@ from torch.utils.data import Subset
 from torch.utils.tensorboard import SummaryWriter
 from ray import tune
 
-import utils as lib
-import engine as eng
-from getter import Getter
+import margin_ap.utils as lib
+import margin_ap.engine as eng
+from margin_ap.getter import Getter
 
 
 def run(config, base_config=None, checkpoint_dir=None, splits=None):
@@ -52,9 +52,10 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
         writer = SummaryWriter(join(log_dir, "logs"), purge_step=restore_epoch)
 
     logging.info(f"Training with seed {config.experience.seed}")
-    torch.manual_seed(config.experience.seed)
     random.seed(config.experience.seed)
     np.random.seed(config.experience.seed)
+    torch.manual_seed(config.experience.seed)
+    torch.cuda.manual_seed_all(config.experience.seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
@@ -76,10 +77,6 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
 
     test_dts = getter.get_dataset(test_transform, 'test', config.dataset)
     sampler = getter.get_sampler(train_dts, config.dataset.sampler)
-
-    tester = eng.get_tester(
-        dataset=test_dts, exclude_ranks=None, batch_size=config.experience.val_bs, num_workers=config.experience.num_workers,
-    )
 
     # """""""""""""""""" Create Network """"""""""""""""""""""""""
     net = getter.get_model(config.model)
@@ -110,6 +107,15 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
         memory = getter.get_memory(config.memory)
         memory.cuda()
 
+    # """""""""""""""""" Handle Apex """"""""""""""""""""""""""
+    if config.experience.apex:
+        from apex import amp
+        to_init = [net]
+        to_init.extend(criterion)
+        to_init, optimizer = amp.initialize(to_init, optimizer, opt_level='O1')
+        net = to_init[0]
+        criterion = to_init[1:]
+
     # """""""""""""""""" Handle Cuda """"""""""""""""""""""""""
     if torch.cuda.device_count() > 1:
         logging.info("Model is parallelized")
@@ -134,7 +140,6 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
         val_dts=val_dts,
         test_dts=test_dts,
         sampler=sampler,
-        tester=tester,
         writer=writer,
         restore_epoch=restore_epoch,
     )
