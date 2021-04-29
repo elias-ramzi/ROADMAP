@@ -15,7 +15,7 @@ def single_experiment_runner(cfg):
         if os.path.isfile(lib.expand_path(cfg.experience.resume)):
             resume = lib.expand_path(cfg.experience.resume)
         else:
-            resume = os.path.join(cfg.experience.log_dir, 'weights', cfg.experience.resume)
+            resume = os.path.join(cfg.experience.log_dir, cfg.experience.experiment_name, 'weights', cfg.experience.resume)
     else:
         resume = None
         if os.path.isdir(os.path.join(cfg.experience.log_dir, cfg.experience.experiment_name, 'weights')):

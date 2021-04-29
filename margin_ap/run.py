@@ -92,9 +92,13 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
         for key, opt in optimizer.items():
             opt.load_state_dict(state['optimizer_state'][key])
 
+        if config.experience.force_lr is not None:
+            _ = [lib.set_lr(opt, config.experience.force_lr) for opt in optimizer.values()]
+            logging.info(optimizer)
+
     if checkpoint_dir:
         for key, schs in scheduler.items():
-            for sch, sch_state in zip(optimizer, state[f'scheduler_{key}_state']):
+            for sch, sch_state in zip(schs, state[f'scheduler_{key}_state']):
                 sch.load_state_dict(sch_state)
 
     # """""""""""""""""" Create Criterion """"""""""""""""""""""""""

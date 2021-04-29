@@ -10,6 +10,7 @@ from .get_lr import get_lr
 from .override_config import override_config
 from .rgb_to_bgr import RGBToBGR
 from .set_initial_lr import set_initial_lr
+from .set_lr import set_lr
 
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     'override_config',
     'RGBToBGR',
     'set_initial_lr',
+    'set_lr',
 ]

@@ -1,15 +1,6 @@
 # @package _group_
 - name: AdamW
-  params: backbone
-  kwargs:
-    lr: 0.00003
-    weight_decay: 0.0005
-  scheduler_on_epoch:
-  scheduler_on_step:
-  scheduler_on_val:
-
-- name: AdamW
-  params: fc
+  params:
   kwargs:
     lr: 0.00003
     weight_decay: 0.0005
