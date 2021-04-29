@@ -18,12 +18,14 @@ cd $WORK/margin_ap
 module purge
 module load pytorch-gpu/py3/1.7.1
 
+export TORCH_HOME=${SCRATCH}/pretrained_models
+
 loss[0]="smoothap"
 loss[1]="smoothap"
 loss[2]="smoothap"
-loss[3]="adaptative"
-loss[4]="adaptative"
-loss[5]="adaptative"
+loss[3]="adaptativeap"
+loss[4]="adaptativeap"
+loss[5]="adaptativeap"
 loss[6]="marginap"
 loss[7]="marginap"
 loss[8]="marginap"
