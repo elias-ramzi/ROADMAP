@@ -85,6 +85,9 @@ class Getter:
         if config.freeze_batch_norm:
             logging.info("Freezing batch norm")
             net = lib.freeze_batch_norm(net)
+        if config.freeze_pos_embedding:
+            logging.info("Freezing pos embeddings")
+            net.backbone = lib.freeze_pos_embedding(net.backbone)
         return net
 
     def get_memory(self, config):
