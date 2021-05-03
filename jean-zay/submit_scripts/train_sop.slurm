@@ -8,8 +8,8 @@
 #SBATCH --distribution=block:block   # we pin the tasks on contiguous cores
 #SBATCH --time=20:00:00              # temps d’exécution maximum demande (HH:MM:SS)
 #SBATCH --qos=qos_gpu-t3
-#SBATCH --output=train_sop%j.out # output file name
-#SBATCH --error=train_sop%j.err  # error file name
+#SBATCH --output=train_sop%A_%a.out # output file name
+#SBATCH --error=train_sop%A_%a.err  # error file name
 #SBATCH --array=0-11
 
 set -x

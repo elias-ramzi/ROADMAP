@@ -52,6 +52,19 @@ def get_backbone(name):
         out_dim = 384
         backbone = timm.create_model('tnt_s_patch16_224', pretrained=True)
         backbone.reset_classifier(-1)
+    elif name == 'dino16':
+        logging.info("using Dino DeiT 16")
+        out_dim = 384
+        backbone = torch.hub.load('facebookresearch/dino:main', 'dino_deits16')
+    elif name == 'dino8':
+        logging.info("using Dino DeiT 8")
+        out_dim = 384
+        backbone = torch.hub.load('facebookresearch/dino:main', 'dino_deits8')
+    elif name == 'dinores':
+        logging.info("using Dino ResNet 50")
+        out_dim = 2048
+        backbone = torch.hub.load('facebookresearch/dino:main', 'dino_resnet50')
+        backbone = nn.Sequential(*list(backbone.children())[:-1])
 
     return (backbone, out_dim)
 

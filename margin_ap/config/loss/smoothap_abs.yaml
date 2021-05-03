@@ -5,7 +5,7 @@
     temp: 0.01
 
 - name: ContrastiveLoss
-  weight: 0.01
+  weight: 1.0
   kwargs:
     pos_margin: 1.0
     neg_margin: 0.5

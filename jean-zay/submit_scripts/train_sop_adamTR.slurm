@@ -27,4 +27,5 @@ experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/sop_transformer' \
 experience.max_iter=200 \
 dataset.sampler.kwargs.batch_size=128 \
+model=deit \
 loss=adaptativeap

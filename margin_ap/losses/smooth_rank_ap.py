@@ -99,7 +99,15 @@ class SmoothRankAP(nn.Module):
 
         # shape N
         ap_score = torch.stack(ap_score)
-        return ap_score
+
+        if self.return_type == 'AP':
+            return ap_score
+        if self.return_type == 'mAP':
+            return ap_score.mean()
+        if self.return_type == '1-AP':
+            return 1 - ap_score
+        else:
+            return 1 - ap_score.mean()
 
     def quick_forward(self, scores, target):
         batch_size = target.size(0)

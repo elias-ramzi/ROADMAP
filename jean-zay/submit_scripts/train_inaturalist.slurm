@@ -6,11 +6,11 @@
 #SBATCH --cpus-per-task=10           # number of cores per tasks
 #SBATCH --hint=nomultithread         # we get physical cores not logical
 #SBATCH --distribution=block:block   # we pin the tasks on contiguous cores
-#SBATCH --time=20:00:00              # temps d’exécution maximum demande (HH:MM:SS)
-#SBATCH --qos=qos_gpu-t3
-#SBATCH --output=train_inat%j.out # output file name
-#SBATCH --error=train_inat%j.err  # error file name
-#SBATCH --array=0-7
+#SBATCH --time=30:00:00              # temps d’exécution maximum demande (HH:MM:SS)
+#SBATCH --qos=qos_gpu-t4
+#SBATCH --output=train_inat%A_%a.out # output file name
+#SBATCH --error=train_inat%A_%a.err  # error file name
+#SBATCH --array=0-5
 
 set -x
 cd $WORK/margin_ap
@@ -24,30 +24,32 @@ loss[0]="smoothap"
 loss[1]="smoothap"
 loss[2]="adaptativeap"
 loss[3]="adaptativeap"
-loss[4]="marginap"
-loss[5]="marginap"
-loss[6]="contrastive"
-loss[7]="contrastive"
+loss[4]="contrastive"
+loss[5]="contrastive"
 
-batch_size[0]="32"
-batch_size[1]="128"
-batch_size[2]="32"
-batch_size[3]="128"
-batch_size[4]="32"
-batch_size[5]="128"
-batch_size[6]="32"
-batch_size[7]="128"
+model[0]=deit
+model[1]=resnet
+model[2]=deit
+model[3]=resnet
+model[4]=deit
+model[5]=resnet
+
+opt[0]=inat_adamw
+opt[1]=inaturalist
+opt[2]=inat_adamw
+opt[3]=inaturalist
+opt[4]=inat_adamw
+opt[5]=inaturalist
 
 srun python margin_ap/single_experiment_runner.py \
-'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}' \
+'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_${model.kwargs.backbone_name}' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Inaturalist' \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/inat' \
 experience.max_iter=100 \
-optimizer=inaturalist \
-'optimizer.0.scheduler_on_epoch=null' \
-'optimizer.1.scheduler_on_epoch=null' \
+optimizer=${opt[${SLURM_ARRAY_TASK_ID}]} \
 dataset=inaturalist \
-dataset.sampler.kwargs.batch_size=${batch_size[${SLURM_ARRAY_TASK_ID}]} \
+dataset.sampler.kwargs.batch_size=128 \
 transform=inaturalist \
+model=${model[${SLURM_ARRAY_TASK_ID}]} \
 loss=${loss[${SLURM_ARRAY_TASK_ID}]}

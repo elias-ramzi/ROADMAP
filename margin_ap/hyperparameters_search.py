@@ -1,6 +1,8 @@
+import os
 from functools import partial
 
 import hydra
+import ray
 from ray import tune
 from ray.tune.schedulers import ASHAScheduler
 
@@ -37,6 +39,7 @@ def hyperparameters_search(cfg):
         max_t=cfg.experience.max_iter,
     )
 
+    ray.init(_temp_dir=os.path.expanduser("~/experiments/tmp"))
     result = tune.run(
         partial(run.run, base_config=cfg),
         config=search_space,
