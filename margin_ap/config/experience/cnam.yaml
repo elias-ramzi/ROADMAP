@@ -17,6 +17,7 @@ eval_bs: 96
 save_model: 5
 eval_split: test
 principal_metric: recall_at_1_level0
+log_grad: False
 
 num_workers: 16
 pin_memory: True

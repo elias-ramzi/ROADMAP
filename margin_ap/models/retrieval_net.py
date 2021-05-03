@@ -66,6 +66,8 @@ class RetrievalNet(nn.Module):
         without_fc=False,
     ):
         super().__init__()
+        assert isinstance(without_fc, bool)
+        assert isinstance(norm_features, bool)
         self.norm_features = norm_features
         self.without_fc = without_fc
 

@@ -20,7 +20,7 @@ def _batch_optimization(
     label_matrix = lib.create_label_matrix(labels)
 
     if memory:
-        if memory.activate_after >= epoch:
+        if config.memory.activate_after >= epoch:
             memory_embeddings, memory_labels = memory(di.detach(), labels, batch["path"])
             memory_scores = torch.mm(di, memory_embeddings.t())
             memory_label_matrix = lib.create_label_matrix(labels, memory_labels)
@@ -42,9 +42,9 @@ def _batch_optimization(
         losses.append(weight * loss)
         logs[crit.__class__.__name__] = loss.item()
         if memory:
-            if memory.activate_after >= epoch:
+            if config.memory.activate_after >= epoch:
                 mem_loss = mem_loss.mean()
-                losses.append(weight * memory.weight * mem_loss)
+                losses.append(weight * config.memory.weight * mem_loss)
                 logs[f"memory_{crit.__class__.__name__}"] = mem_loss.item()
 
     total_loss = sum(losses)
@@ -83,6 +83,10 @@ def base_update(
             epoch,
             memory,
         )
+
+        if config.experience.log_grad:
+            grad_norm = lib.get_gradient_norm(net)
+            logs["grad_norm"] = grad_norm.item()
 
         for key, opt in optimizer.items():
             if epoch < config.experience.warm_up and key != config.experience.warm_up_key:

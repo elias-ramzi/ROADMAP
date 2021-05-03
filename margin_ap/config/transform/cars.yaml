@@ -1,5 +1,7 @@
 # @package _group_
 train:
+  Resize:
+    size: [256, 256]
   RandomResizedCrop:
     scale: [0.16, 1]
     ratio: [0.75, 1.33]
@@ -13,7 +15,7 @@ train:
 
 test:
   Resize:
-    size: 256
+    size: [256, 256]
   CenterCrop:
     size: 224
   ToTensor: {}

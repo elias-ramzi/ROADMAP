@@ -92,9 +92,9 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
         for key, opt in optimizer.items():
             opt.load_state_dict(state['optimizer_state'][key])
 
-        if config.experience.force_lr is not None:
-            _ = [lib.set_lr(opt, config.experience.force_lr) for opt in optimizer.values()]
-            logging.info(optimizer)
+    if config.experience.force_lr is not None:
+        _ = [lib.set_lr(opt, config.experience.force_lr) for opt in optimizer.values()]
+        logging.info(optimizer)
 
     if checkpoint_dir:
         for key, schs in scheduler.items():
