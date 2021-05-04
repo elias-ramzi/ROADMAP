@@ -19,6 +19,7 @@ def train(
     criterion,
     optimizer,
     scheduler,
+    scaler,
     memory,
     train_dts,
     val_dts,
@@ -53,6 +54,7 @@ def train(
             criterion=criterion,
             optimizer=optimizer,
             scheduler=scheduler,
+            scaler=scaler,
             epoch=e,
             memory=memory,
         )
@@ -106,6 +108,7 @@ def train(
             net=net,
             optimizer=optimizer,
             scheduler=scheduler,
+            scaler=scaler,
             epoch=e,
             seed=config.experience.seed,
             args=config,

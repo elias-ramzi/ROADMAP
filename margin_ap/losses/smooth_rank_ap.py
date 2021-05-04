@@ -22,7 +22,7 @@ def tau_sigmoid(tensor, temp):
 def rank_upper_bound(tens, theta, mu_n, tau_p):
     neg_mask = (tens < 0)
     pos_mask = ~neg_mask
-    constrain_neg = (tens[neg_mask] > -mu_n).float()
+    constrain_neg = (tens[neg_mask] > -mu_n).type(tens.dtype)
 
     tens[neg_mask] = ((theta / (mu_n)) * tens[neg_mask] + theta) * constrain_neg
     tens[pos_mask] = tau_p * tens[pos_mask] + theta
@@ -32,18 +32,18 @@ def rank_upper_bound(tens, theta, mu_n, tau_p):
 def piecewise_affine(tens, theta, mu_n, mu_p):
     neg_mask = (tens < 0)
     pos_mask = ~neg_mask
-    constrain_neg = (tens[neg_mask] > -mu_n).float()
+    constrain_neg = (tens[neg_mask] > -mu_n).type(tens.dtype)
     constrain_pos = (tens[pos_mask] < mu_p)
 
     tens[neg_mask] = ((theta / mu_n) * tens[neg_mask] + theta) * constrain_neg
-    tens[pos_mask] = (((1 - theta) / mu_p) * tens[pos_mask] + theta) * constrain_pos.float() + (~constrain_pos).float()
+    tens[pos_mask] = (((1 - theta) / mu_p) * tens[pos_mask] + theta) * constrain_pos.type(tens.dtype) + (~constrain_pos).type(tens.dtype)
 
     return tens
 
 
 def change_regime(tens, theta, mu, tau):
     neg_mask = (tens < 0)
-    constrain_neg = (tens[neg_mask] > -mu).float()
+    constrain_neg = (tens[neg_mask] > -mu).type(tens.dtype)
 
     pos_mask = ~neg_mask
     constrain_pos = tens < mu
@@ -69,6 +69,7 @@ class SmoothRankAP(nn.Module):
         batch_size = target.size(0)
         nb_instances = target.size(1)
         device = scores.device
+        target = target.type(scores.dtype)
 
         if self.gamma is not None:
             scores -= self.gamma * torch.randn_like(scores, device=scores.device).abs() * (target - 0.5)

@@ -16,30 +16,24 @@ set -x
 cd $WORK/margin_ap
 
 module purge
-module load pytorch-gpu/py3/1.7.1
+module load pytorch-gpu/py3/1.8.0
 
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
 loss[0]="smoothap"
 loss[1]="smoothap"
-loss[2]="adaptativeap"
+loss[2]="smoothap"
 loss[3]="adaptativeap"
-loss[4]="contrastive"
-loss[5]="contrastive"
+loss[4]="adaptativeap"
+loss[5]="adaptativeap"
 
-model[0]=deit
-model[1]=resnet
-model[2]=deit
-model[3]=resnet
-model[4]=deit
-model[5]=resnet
 
-opt[0]=inat_adamw
-opt[1]=inaturalist
-opt[2]=inat_adamw
-opt[3]=inaturalist
-opt[4]=inat_adamw
-opt[5]=inaturalist
+batch_size[0]=32
+batch_size[1]=64
+batch_size[2]=224
+batch_size[3]=32
+batch_size[4]=64
+batch_size[5]=224
 
 srun python margin_ap/single_experiment_runner.py \
 'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_${model.kwargs.backbone_name}' \
@@ -47,9 +41,9 @@ srun python margin_ap/single_experiment_runner.py \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/inat' \
 experience.max_iter=100 \
-optimizer=${opt[${SLURM_ARRAY_TASK_ID}]} \
+optimizer=inaturalist \
 dataset=inaturalist \
-dataset.sampler.kwargs.batch_size=128 \
+dataset.sampler.kwargs.batch_size=${batch_size[${SLURM_ARRAY_TASK_ID}]} \
 transform=inaturalist \
-model=${model[${SLURM_ARRAY_TASK_ID}]} \
+model.kwargs.with_autocast=True \
 loss=${loss[${SLURM_ARRAY_TASK_ID}]}

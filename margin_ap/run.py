@@ -81,6 +81,10 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
     # """""""""""""""""" Create Network """"""""""""""""""""""""""
     net = getter.get_model(config.model)
 
+    scaler = None
+    if config.model.kwargs.with_autocast:
+        scaler = torch.cuda.amp.GradScaler()
+
     if checkpoint_dir:
         net.load_state_dict(state['net_state'])
         net.cuda()
@@ -139,6 +143,7 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
         criterion=criterion,
         optimizer=optimizer,
         scheduler=scheduler,
+        scaler=scaler,
         memory=memory,
         train_dts=train_dts,
         val_dts=val_dts,

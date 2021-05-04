@@ -16,7 +16,7 @@ set -x
 cd $WORK/margin_ap
 
 module purge
-module load pytorch-gpu/py3/1.7.1
+module load pytorch-gpu/py3/1.8.0
 
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
