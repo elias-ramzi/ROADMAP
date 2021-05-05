@@ -54,6 +54,7 @@ experience.seed=333 \
 experience.max_iter=50 \
 experience.resume=epoch_25.ckpt \
 experience.force_lr=0.000001 \
+experience.num_workers=10 \
 model=deit \
 optimizer=sop_adamw \
 dataset.sampler.kwargs.batch_size=${batch_size[${SLURM_ARRAY_TASK_ID}]} \

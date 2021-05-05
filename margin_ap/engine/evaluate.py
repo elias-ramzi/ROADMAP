@@ -69,17 +69,26 @@ def evaluate(
         )
 
     dataset_dict = {}
+    splits_to_eval = []
     if train_dataset is not None:
         dataset_dict["train"] = train_dataset
+        splits_to_eval.append(('train', ['train']))
 
     if val_dataset is not None:
         dataset_dict["val"] = val_dataset
+        splits_to_eval.append(('val', ['val']))
 
     if test_dataset is not None:
-        dataset_dict["test"] = test_dataset
+        if isinstance(test_dataset, dict):
+            dataset_dict.update(test_dataset)
+            splits_to_eval.append(('test', ['gallery']))
+        else:
+            dataset_dict["test"] = test_dataset
+            splits_to_eval.append(('test', ['test']))
 
     return tester.test(
-        dataset_dict,
-        f"{epoch}",
-        net,
+        dataset_dict=dataset_dict,
+        epoch=f"{epoch}",
+        trunk_model=net,
+        splits_to_eval=splits_to_eval,
     )

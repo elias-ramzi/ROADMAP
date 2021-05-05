@@ -10,7 +10,7 @@
 #SBATCH --qos=qos_gpu-t4
 #SBATCH --output=train_inat%A_%a.out # output file name
 #SBATCH --error=train_inat%A_%a.err  # error file name
-#SBATCH --array=0-5
+#SBATCH --array=0-1
 
 set -x
 cd $WORK/margin_ap
@@ -20,30 +20,20 @@ module load pytorch-gpu/py3/1.8.0
 
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
-loss[0]="smoothap"
-loss[1]="smoothap"
-loss[2]="smoothap"
-loss[3]="adaptativeap"
-loss[4]="adaptativeap"
-loss[5]="adaptativeap"
-
-
-batch_size[0]=32
-batch_size[1]=64
-batch_size[2]=224
-batch_size[3]=32
-batch_size[4]=64
-batch_size[5]=224
+typerank[0]="True"
+typerank[1]="False"
 
 srun python margin_ap/single_experiment_runner.py \
 'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_${model.kwargs.backbone_name}' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Inaturalist' \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/inat' \
-experience.max_iter=100 \
+experience.max_iter=90 \
+experience.num_workers=10 \
 optimizer=inaturalist \
 dataset=inaturalist \
-dataset.sampler.kwargs.batch_size=${batch_size[${SLURM_ARRAY_TASK_ID}]} \
+dataset.sampler.kwargs.batch_size=224 \
 transform=inaturalist \
 model.kwargs.with_autocast=True \
-loss=${loss[${SLURM_ARRAY_TASK_ID}]}
+loss=marginap \
++loss.0.kwargs.with_true_rank=${typerank[${SLURM_ARRAY_TASK_ID}]}

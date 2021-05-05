@@ -34,6 +34,7 @@ experience.seed=333 \
 experience.max_iter=200 \
 experience.resume=epoch_100.ckpt \
 experience.force_lr=0.000001 \
+experience.num_workers=10 \
 'optimizer.0.scheduler_on_epoch=null' \
 'optimizer.1.scheduler_on_epoch=null' \
 dataset.sampler.kwargs.batch_size=384 \

@@ -29,6 +29,7 @@ srun python margin_ap/single_experiment_runner.py \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/inat' \
 experience.max_iter=100 \
+experience.num_workers=10 \
 optimizer=inat_adamw \
 dataset=inaturalist \
 dataset.sampler.kwargs.batch_size=128 \

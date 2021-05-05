@@ -26,6 +26,7 @@ srun python margin_ap/single_experiment_runner.py \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/sop_transformer' \
 experience.max_iter=200 \
+experience.num_workers=10 \
 dataset.sampler.kwargs.batch_size=128 \
 model=deit \
 loss=adaptativeap

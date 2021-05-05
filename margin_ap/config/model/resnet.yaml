@@ -7,4 +7,4 @@ kwargs:
   embed_dim: 512
   norm_features: False
   without_fc: False
-  with_autocast: False
+  with_autocast: True

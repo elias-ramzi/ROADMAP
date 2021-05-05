@@ -72,13 +72,21 @@ class Getter:
         return sampler
 
     def get_dataset(self, transform, mode, config):
-        dataset = getattr(datasets, config.name)(
-            transform=transform,
-            mode=mode,
-            **config.kwargs,
-        )
-        logging.info(dataset)
-        return dataset
+        if (config.name == "InShopDataset") and (mode == "test"):
+            dataset = {
+                "test": getattr(datasets, config.name)(transform=transform, mode="query", **config.kwargs),
+                "gallery": getattr(datasets, config.name)(transform=transform, mode="gallery", **config.kwargs),
+            }
+            logging.info(dataset)
+            return dataset
+        else:
+            dataset = getattr(datasets, config.name)(
+                transform=transform,
+                mode=mode,
+                **config.kwargs,
+            )
+            logging.info(dataset)
+            return dataset
 
     def get_model(self, config):
         net = getattr(models, config.name)(**config.kwargs)

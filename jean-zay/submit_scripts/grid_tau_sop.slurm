@@ -35,6 +35,7 @@ srun python margin_ap/single_experiment_runner.py \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/simple_grid_tau' \
 experience.max_iter=200 \
+experience.num_workers=10 \
 dataset.sampler.kwargs.batch_size=128 \
 loss=adaptativeap \
 loss.0.kwargs.tau=${tau[${SLURM_ARRAY_TASK_ID}]}

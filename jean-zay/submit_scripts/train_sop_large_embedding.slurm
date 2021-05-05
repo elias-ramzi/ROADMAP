@@ -28,6 +28,7 @@ experience.resume=rolling.ckpt \
 'experience.log_dir=${env:SCRATCH}/experiments/sop' \
 experience.max_iter=200 \
 experience.force_lr=0.000001 \
+experience.num_workers=10 \
 dataset.sampler.kwargs.batch_size=128 \
 model.kwargs.embed_dim=2048 \
 loss=adaptativeap

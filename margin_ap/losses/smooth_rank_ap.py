@@ -58,11 +58,12 @@ def change_regime(tens, theta, mu, tau):
 
 
 class SmoothRankAP(nn.Module):
-    def __init__(self, rank_approximation, return_type='1-mAP', gamma=None):
+    def __init__(self, rank_approximation, return_type='1-mAP', gamma=None, with_true_rank=False):
         super().__init__()
         self.rank_approximation = rank_approximation
         self.return_type = return_type
         self.gamma = gamma
+        self.with_true_rank = with_true_rank
         assert return_type in ["1-mAP", "1-AP", "AP", 'mAP']
 
     def general_forward(self, scores, target):
@@ -115,7 +116,7 @@ class SmoothRankAP(nn.Module):
         device = scores.device
 
         if self.gamma is not None:
-            scores -= self.gamma * torch.randn_like(scores, device=scores.device).abs() * (target - 0.5)
+            scores -= self.gamma * torch.randn_like(scores, device=device).abs() * (target - 0.5)
 
         # ------ differentiable ranking of all retrieval set ------
         # compute the mask which ignores the relevance score of the query to itself
@@ -133,10 +134,14 @@ class SmoothRankAP(nn.Module):
 
         # ------ differentiable ranking of only positive set in retrieval set ------
         # compute the mask which only gives non-zero weights to the positive set
-        pos_mask = (target - torch.eye(batch_size).to(device))
-        sim_pos_sg = sim_diff_sigmoid * pos_mask
+        if self.with_true_rank:
+            sim_pos_rk = 1 + scores.detach().argsort(-1, True).argsort(-1)
+            sim_pos_rk = sim_pos_rk.type(scores.dtype) * target
+        else:
+            pos_mask = (target - torch.eye(batch_size).to(device))
+            sim_pos_sg = sim_diff_sigmoid * pos_mask
+            sim_pos_rk = (torch.sum(sim_pos_sg, dim=-1) + target) * target
         # compute the rankings of the positive set
-        sim_pos_rk = (torch.sum(sim_pos_sg, dim=-1) + target) * target
 
         ap = ((sim_pos_rk / sim_all_rk).sum(1) * (1 / target.sum(1)))
         return ap
@@ -161,76 +166,76 @@ class SmoothRankAP(nn.Module):
             loss = 1 - ap.mean()
             return loss
 
+    @property
+    def my_repr(self,):
+        repr = f"return_type={self.return_type}"
+        if self.gamma is not None:
+            repr += f", gamma={self.gamma}"
+        if self.with_true_rank is not None:
+            repr += f", with_true_rank={self.with_true_rank}"
+
+        return repr
+
 
 class HeavisideAP(SmoothRankAP):
     """here for testing purposes"""
 
-    def __init__(self, return_type='1-mAP', **kwargs):
+    def __init__(self, **kwargs):
         rank_approximation = partial(torch.heaviside, values=torch.tensor(1.))
-        super().__init__(rank_approximation, return_type=return_type, **kwargs)
+        super().__init__(rank_approximation, **kwargs)
 
     def extra_repr(self,):
-        repr = ""
-        if self.gamma is not None:
-            repr += f", gamma={self.gamma}"
+        repr = self.my_repr
         return repr
 
 
 class SmoothAP(SmoothRankAP):
 
-    def __init__(self, temp, return_type='1-mAP', **kwargs):
+    def __init__(self, temp, **kwargs):
         rank_approximation = partial(tau_sigmoid, temp=temp)
-        super().__init__(rank_approximation, return_type=return_type, **kwargs)
+        super().__init__(rank_approximation, **kwargs)
         self.temp = temp
 
     def extra_repr(self,):
-        repr = f"temp={self.temp}"
-        if self.gamma is not None:
-            repr += f", gamma={self.gamma}"
+        repr = f"temp={self.temp}, {self.my_repr}"
         return repr
 
 
 class MarginAP(SmoothRankAP):
 
-    def __init__(self, mu, tau, return_type='1-mAP', **kwargs):
+    def __init__(self, mu, tau, **kwargs):
         rank_approximation = partial(rank_upper_bound, theta=1.0, mu_n=mu, tau_p=tau)
-        super().__init__(rank_approximation, return_type=return_type, **kwargs)
+        super().__init__(rank_approximation, **kwargs)
         self.mu = mu
         self.tau = tau
 
     def extra_repr(self,):
-        repr = f"mu={self.mu}, tau={self.tau}, return_type={self.return_type}"
-        if self.gamma is not None:
-            repr += f", gamma={self.gamma}"
+        repr = f"mu={self.mu}, tau={self.tau}, {self.my_repr}"
         return repr
 
 
 class AffineAP(SmoothRankAP):
 
-    def __init__(self, theta, mu_n, mu_p, return_type='1-mAP', **kwargs):
+    def __init__(self, theta, mu_n, mu_p, **kwargs):
         rank_approximation = partial(piecewise_affine, theta=theta, mu_n=mu_n, mu_p=mu_p)
-        super().__init__(rank_approximation, return_type=return_type, **kwargs)
+        super().__init__(rank_approximation, **kwargs)
         self.theta = theta
         self.mu_n = mu_n
         self.mu_p = mu_p
 
     def extra_repr(self,):
-        repr = f"theta={self.theta}, mu_n={self.mu_n}, mu_p={self.mu_p}"
-        if self.gamma is not None:
-            repr += f", gamma={self.gamma}"
+        repr = f"theta={self.theta}, mu_n={self.mu_n}, mu_p={self.mu_p}, {self.my_repr}"
         return repr
 
 
 class AdaptativeAP(SmoothRankAP):
 
-    def __init__(self, theta, mu, tau, return_type='1-mAP', **kwargs):
+    def __init__(self, theta, mu, tau, **kwargs):
         rank_approximation = partial(change_regime, theta=theta, mu=mu, tau=tau)
-        super().__init__(rank_approximation, return_type=return_type, **kwargs)
+        super().__init__(rank_approximation, **kwargs)
         self.mu = mu
         self.tau = tau
 
     def extra_repr(self,):
-        repr = f"mu={self.mu}, tau={self.tau}, return_type={self.return_type}"
-        if self.gamma is not None:
-            repr += f", gamma={self.gamma}"
+        repr = f"mu={self.mu}, tau={self.tau}, {self.my_repr}"
         return repr

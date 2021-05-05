@@ -26,6 +26,7 @@ srun python margin_ap/single_experiment_runner.py \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/sop' \
 experience.max_iter=50 \
+experience.num_workers=10 \
 optimizer=sop_small \
 model.kwargs.with_autocast=True \
 dataset.sampler.kwargs.batch_size=384 \

@@ -33,6 +33,7 @@ srun python margin_ap/single_experiment_runner.py \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/sop' \
 experience.max_iter=200 \
+experience.num_workers=10 \
 dataset.sampler.kwargs.batch_size=128 \
 loss=adaptativeap \
 +loss.0.kwargs.gamma=${gamma[${SLURM_ARRAY_TASK_ID}]}
