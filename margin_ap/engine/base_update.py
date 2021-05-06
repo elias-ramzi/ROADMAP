@@ -1,6 +1,7 @@
 import logging
 
 import torch
+import numpy as np
 
 import margin_ap.utils as lib
 
@@ -41,13 +42,34 @@ def _batch_optimization(
                     mem_loss = crit(memory_scores, memory_label_matrix)
 
             loss = loss.mean()
-            losses.append(weight * loss)
+            if weight == 'adaptative':
+                losses.append(loss)
+            else:
+                losses.append(weight * loss)
             logs[crit.__class__.__name__] = loss.item()
             if memory:
                 if config.memory.activate_after >= epoch:
                     mem_loss = mem_loss.mean()
-                    losses.append(weight * config.memory.weight * mem_loss)
+                    if weight == 'adaptative':
+                        losses.append(config.memory.weight * mem_loss)
+                    else:
+                        losses.append(weight * config.memory.weight * mem_loss)
                     logs[f"memory_{crit.__class__.__name__}"] = mem_loss.item()
+
+    if weight == 'adaptative':
+        grads = []
+        for i, lss in enumerate(losses):
+            g = torch.autograd.grad(lss, net.fc.parameters(), retain_graph=True)
+            grads.append(torch.norm(g[0]).item())
+        mean_grad = np.mean(grads)
+        weights = [mean_grad / g for g in grads]
+        losses = [w * lss for w, lss in zip(weights, losses)]
+        logs.update({
+            f"weight_{crit.__class__.__name__}": w for (crit, _), w in zip(criterion, weights)
+        })
+        logs.update({
+            f"grad_{crit.__class__.__name__}": w for (crit, _), w in zip(criterion, grads)
+        })
 
     total_loss = sum(losses)
     if scaler is None:

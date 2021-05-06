@@ -2,7 +2,7 @@ import logging
 import zipfile
 import tarfile
 
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 
 def extract_progress(compressed_obj):

@@ -6,6 +6,7 @@ from functools import partial
 
 import torch
 import torch.nn as nn
+from tqdm.auto import tqdm
 
 
 def tau_sigmoid(tensor, temp):
@@ -57,8 +58,23 @@ def change_regime(tens, theta, mu, tau):
     return tens
 
 
+def ap_upper_bound(tens, mu, tau, target):
+    target = target.unsqueeze(1).bool()
+
+    tens[target] = piecewise_affine(tens, 0.5, mu, mu)
+    tens[~target] = change_regime(tens, 0.5, mu, tau)
+
+    return tens
+
+
 class SmoothRankAP(nn.Module):
-    def __init__(self, rank_approximation, return_type='1-mAP', gamma=None, with_true_rank=False):
+    def __init__(
+        self,
+        rank_approximation,
+        return_type='1-mAP',
+        gamma=None,
+        with_true_rank=False
+    ):
         super().__init__()
         self.rank_approximation = rank_approximation
         self.return_type = return_type
@@ -66,7 +82,7 @@ class SmoothRankAP(nn.Module):
         self.with_true_rank = with_true_rank
         assert return_type in ["1-mAP", "1-AP", "AP", 'mAP']
 
-    def general_forward(self, scores, target):
+    def general_forward(self, scores, target, verbose=False):
         batch_size = target.size(0)
         nb_instances = target.size(1)
         device = scores.device
@@ -77,7 +93,10 @@ class SmoothRankAP(nn.Module):
 
         ap_score = []
         mask = (1 - torch.eye(nb_instances, device=device))
-        for idx in range(batch_size):
+        iterator = range(batch_size)
+        if verbose:
+            iterator = tqdm(iterator, leave=None)
+        for idx in iterator:
             # shape M
             query = scores[idx]
             # shape M x M

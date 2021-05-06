@@ -109,6 +109,7 @@ class RetrievalNet(nn.Module):
             self.pooling = nn.AdaptiveMaxPool2d(output_size=(1, 1))
         elif pooling == 'avg':
             self.pooling = nn.AdaptiveAvgPool2d(output_size=(1, 1))
+        logging.info(f"Pooling is {self.pooling}")
 
         if self.norm_features:
             logging.info("Using a LayerNorm layer")

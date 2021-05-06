@@ -33,4 +33,4 @@ dataset.sampler.kwargs.batch_size=384 \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Inaturalist' \
 transform=inaturalist \
 model.kwargs.with_autocast=True \
-loss=smoothap_abs
+loss=adaptativeap_abs
