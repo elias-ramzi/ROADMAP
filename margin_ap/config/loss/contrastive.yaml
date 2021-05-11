@@ -2,5 +2,5 @@
 - name: ContrastiveLoss
   weight: 1.0
   kwargs:
-    pos_margin: 1.0
-    neg_margin: 0.5
+    pos_margin: 0.9
+    neg_margin: 0.6

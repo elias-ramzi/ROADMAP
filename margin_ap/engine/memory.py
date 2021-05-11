@@ -27,11 +27,14 @@ class XBM(nn.Module):
 
     def add_without_keys(self, features, labels):
         bs = features.size(0)
-        while len(self.index) + bs >= self.size[0]:
+        while len(self.index) + bs > self.size[0]:
             self.index.popleft()
 
         available = list(set(range(self.size[0])) - set(self.index))
         self.index.extend(available[:bs])
+        mask = [i in set(available[:bs]) for i in range(self.size[0])]
+        self.features_memory[mask] = features
+        self.labels_memory[mask] = labels.view(-1, 1).float()
 
     def add_with_keys(self, features, labels, keys):
         mask = get_mask(keys)
@@ -66,9 +69,12 @@ class XBM(nn.Module):
 
 
 if __name__ == '__main__':
-    mem = XBM((300, 128), False)
+    mem = XBM((56, 128), unique=False)
 
-    mem(torch.zeros(32, 128), torch.zeros(32,), torch.arange(32, 64))
-    mem(torch.zeros(32, 128), torch.zeros(32,), torch.arange(32))
+    # mem(torch.ones(32, 128), torch.ones(32,), torch.arange(32, 64))
+    # mem(torch.ones(32, 128), torch.ones(32,), torch.arange(32))
 
+    mem(torch.ones(32, 128), torch.ones(32,))
+    features, labels = mem(torch.ones(32, 128), torch.ones(32,))
     print(mem.index)
+    import ipdb; ipdb.set_trace()

@@ -11,7 +11,7 @@
 #SBATCH --qos=qos_gpu-t3
 #SBATCH --output=TRSOP%A_%a.out # output file name
 #SBATCH --error=TRSOP%A_%a.err  # error file name
-#SBATCH --array=0-9
+#SBATCH --array=0-4
 
 set -x
 cd $WORK/margin_ap
@@ -21,43 +21,27 @@ module load pytorch-gpu/py3/1.8.0
 
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
-loss[0]="contrastive"
-loss[1]="contrastive"
-loss[2]="contrastive"
-loss[3]="contrastive"
-loss[4]="contrastive"
-loss[5]="smoothap"
-loss[6]="smoothap"
-loss[7]="smoothap"
-loss[8]="smoothap"
-loss[9]="smoothap"
-
+loss[0]="smoothap_abs"
+loss[1]="smoothap_abs"
+loss[2]="smoothap_abs"
+loss[3]="smoothap_abs"
+loss[4]="smoothap_abs"
 
 batch_size[0]="32"
 batch_size[1]="64"
 batch_size[2]="128"
 batch_size[3]="224"
 batch_size[4]="384"
-batch_size[5]="32"
-batch_size[6]="64"
-batch_size[7]="128"
-batch_size[8]="224"
-batch_size[9]="384"
 
 batches_per_super_pair[0]=40
 batches_per_super_pair[1]=20
 batches_per_super_pair[2]=10
 batches_per_super_pair[3]=6
 batches_per_super_pair[4]=4
-batches_per_super_pair[5]=40
-batches_per_super_pair[6]=20
-batches_per_super_pair[7]=10
-batches_per_super_pair[8]=6
-batches_per_super_pair[9]=4
 
 
 srun python margin_ap/single_experiment_runner.py \
-'experience.experiment_name=sop_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_deit' \
+'experience.experiment_name=sop_${loss.0.name}_${loss.1.name}_${dataset.sampler.kwargs.batch_size}_deit' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Stanford_Online_Products' \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/sop_deit_baseline_middle' \
@@ -69,4 +53,6 @@ optimizer.0.kwargs.lr=0.00001 \
 optimizer.0.name=AdamW \
 dataset.sampler.kwargs.batch_size=${batch_size[${SLURM_ARRAY_TASK_ID}]} \
 dataset.sampler.kwargs.batches_per_super_pair=${batches_per_super_pair[${SLURM_ARRAY_TASK_ID}]} \
-loss=${loss[${SLURM_ARRAY_TASK_ID}]}
+loss=${loss[${SLURM_ARRAY_TASK_ID}]} \
+loss.1.kwargs.pos_margin=0.9 \
+loss.1.kwargs.neg_margin=0.6

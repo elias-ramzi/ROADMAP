@@ -88,9 +88,6 @@ class SmoothRankAP(nn.Module):
         device = scores.device
         target = target.type(scores.dtype)
 
-        if self.gamma is not None:
-            scores -= self.gamma * torch.randn_like(scores, device=scores.device).abs() * (target - 0.5)
-
         ap_score = []
         mask = (1 - torch.eye(nb_instances, device=device))
         iterator = range(batch_size)
@@ -121,21 +118,11 @@ class SmoothRankAP(nn.Module):
         # shape N
         ap_score = torch.stack(ap_score)
 
-        if self.return_type == 'AP':
-            return ap_score
-        if self.return_type == 'mAP':
-            return ap_score.mean()
-        if self.return_type == '1-AP':
-            return 1 - ap_score
-        else:
-            return 1 - ap_score.mean()
+        return ap_score
 
     def quick_forward(self, scores, target):
         batch_size = target.size(0)
         device = scores.device
-
-        if self.gamma is not None:
-            scores -= self.gamma * torch.randn_like(scores, device=device).abs() * (target - 0.5)
 
         # ------ differentiable ranking of all retrieval set ------
         # compute the mask which ignores the relevance score of the query to itself
@@ -165,25 +152,27 @@ class SmoothRankAP(nn.Module):
         ap = ((sim_pos_rk / sim_all_rk).sum(1) * (1 / target.sum(1)))
         return ap
 
-    def forward(self, scores, target):
+    def forward(self, scores, target, force_general=False, verbose=False):
         assert scores.shape == target.shape
         assert len(scores.shape) == 2
 
-        if scores.size(0) == scores.size(1):
+        if self.gamma is not None:
+            scores -= self.gamma * torch.randn_like(scores, device=scores.device, dtype=scores.dtype).abs() * (target - 0.5)
+
+        if (scores.size(0) == scores.size(1)) and not force_general:
             ap = self.quick_forward(scores, target)
 
         else:
-            ap = self.general_forward(scores, target)
+            ap = self.general_forward(scores, target, verbose=verbose)
 
         if self.return_type == 'AP':
             return ap
-        if self.return_type == 'mAP':
+        elif self.return_type == 'mAP':
             return ap.mean()
-        if self.return_type == '1-AP':
+        elif self.return_type == '1-AP':
             return 1 - ap
-        else:
-            loss = 1 - ap.mean()
-            return loss
+        elif self.return_type == '1-mAP':
+            return 1 - ap.mean()
 
     @property
     def my_repr(self,):
@@ -200,7 +189,7 @@ class HeavisideAP(SmoothRankAP):
     """here for testing purposes"""
 
     def __init__(self, **kwargs):
-        rank_approximation = partial(torch.heaviside, values=torch.tensor(1.))
+        rank_approximation = partial(torch.heaviside, values=torch.tensor(0.))
         super().__init__(rank_approximation, **kwargs)
 
     def extra_repr(self,):
@@ -210,7 +199,7 @@ class HeavisideAP(SmoothRankAP):
 
 class SmoothAP(SmoothRankAP):
 
-    def __init__(self, temp, **kwargs):
+    def __init__(self, temp=0.01, **kwargs):
         rank_approximation = partial(tau_sigmoid, temp=temp)
         super().__init__(rank_approximation, **kwargs)
         self.temp = temp
@@ -257,4 +246,54 @@ class AdaptativeAP(SmoothRankAP):
 
     def extra_repr(self,):
         repr = f"mu={self.mu}, tau={self.tau}, {self.my_repr}"
+        return repr
+
+
+class ScheduledSlopeAP(SmoothRankAP):
+
+    def __init__(self, mu_n_range, mu_p_range, num_steps, scheduled_type='linear', **kwargs):
+        super().__init__(self.scheduled_slope, **kwargs)
+        self.scheduled_type = scheduled_type
+        self.time = nn.Parameter(torch.tensor(0), requires_grad=False)
+        self.num_steps = nn.Parameter(torch.tensor(num_steps), requires_grad=False)
+
+        if isinstance(mu_n_range, float):
+            mu_n_range = [mu_n_range]
+        if isinstance(mu_p_range, float):
+            mu_p_range = [mu_p_range]
+
+        if scheduled_type == 'linear':
+            self.mu_n_range = nn.Parameter(torch.linspace(mu_n_range[0], mu_n_range[-1], num_steps), requires_grad=False)
+            self.mu_p_range = nn.Parameter(torch.linspace(mu_p_range[0], mu_p_range[-1], num_steps), requires_grad=False)
+        elif scheduled_type == 'step':
+            self.mu_n_range = nn.Parameter(self.get_steps(mu_n_range), requires_grad=False)
+            self.mu_p_range = nn.Parameter(self.get_steps(mu_p_range), requires_grad=False)
+
+    def get_steps(self, mu_range):
+        mu = [0] * self.num_steps
+        all_steps = sorted(mu_range.keys(), reverse=True)
+        for step in all_steps:
+            for i in range(len(mu)):
+                if i < step:
+                    mu[i] = mu_range[step]
+        return torch.tensor(mu)
+
+    def scheduled_slope(self, tens):
+        return piecewise_affine(
+            tens,
+            0.5,
+            self.mu_n_range[min(self.time, self.num_steps - 1)],
+            self.mu_p_range[min(self.time, self.num_steps - 1)],
+        )
+
+    def step(self,):
+        self.time += 1
+
+    def extra_repr(self,):
+        repr = f"\tmu_n_range={self.mu_n_range},"
+        repr += f"\n\tmu_p_range={self.mu_p_range},"
+        repr += f"\n\tnum_steps={self.num_steps},"
+        repr += f"\n\tscheduled_type={self.scheduled_type},"
+        repr += f"\n\ttime={self.time},"
+        repr += f"\n\t{self.my_repr}"
         return repr

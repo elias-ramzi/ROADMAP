@@ -23,7 +23,7 @@ def _batch_optimization(
         label_matrix = lib.create_label_matrix(labels)
 
         if memory:
-            if config.memory.activate_after >= epoch:
+            if epoch >= config.memory.activate_after:
                 memory_embeddings, memory_labels = memory(di.detach(), labels, batch["path"])
                 memory_scores = torch.mm(di, memory_embeddings.t())
                 memory_label_matrix = lib.create_label_matrix(labels, memory_labels)
@@ -46,9 +46,10 @@ def _batch_optimization(
                 losses.append(loss)
             else:
                 losses.append(weight * loss)
+
             logs[crit.__class__.__name__] = loss.item()
             if memory:
-                if config.memory.activate_after >= epoch:
+                if epoch >= config.memory.activate_after:
                     mem_loss = mem_loss.mean()
                     if weight == 'adaptative':
                         losses.append(config.memory.weight * mem_loss)
@@ -135,5 +136,9 @@ def base_update(
             logging.info(f'Iteration : {i}/{len(loader)}')
             for k, v in logs.items():
                 logging.info(f'Loss: {k}: {v} ')
+
+    for crit, _ in criterion:
+        if hasattr(crit, 'step'):
+            crit.step()
 
     return meter.avg
