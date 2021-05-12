@@ -3,7 +3,7 @@ from .contrastive_loss import ContrastiveLoss
 from .entropy_regularization import EntropyRegularization
 from .hinge_ap import HingeAP
 from .naver_ap import NaverAP
-from .smooth_rank_ap import HeavisideAP, SmoothAP, MarginAP, AffineAP, AdaptativeAP, ScheduledSlopeAP
+from .smooth_rank_ap import HeavisideAP, SmoothAP, MarginAP, AffineAP, StepSmoothAP, ScheduledSlopeAP
 from .triplet_loss import TripletLoss
 
 
@@ -17,7 +17,7 @@ __all__ = [
     'SmoothAP',
     'MarginAP',
     'AffineAP',
-    'AdaptativeAP',
+    'StepSmoothAP',
     'ScheduledSlopeAP',
     'TripletLoss',
 ]
