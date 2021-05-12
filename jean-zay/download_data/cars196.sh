@@ -12,4 +12,5 @@
 set -x
 cd $STORE
 
-curl -C - "http://imagenet.stanford.edu/internal/car196/cars_train.tgz" --output cars_train.tgz
+curl -C - "http://imagenet.stanford.edu/internal/car196/car_ims.tgz" --output cars_ims.tgz
+curl -C - "http://imagenet.stanford.edu/internal/car196/cars_annos.mat" --output cars_annos.mat

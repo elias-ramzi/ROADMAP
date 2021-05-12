@@ -1,6 +1,0 @@
-# @package _group_
-name: XBM
-
-kwargs:
-  size: [59551, 512]
-  unique: True

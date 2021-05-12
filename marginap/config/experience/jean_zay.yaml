@@ -1,5 +1,0 @@
-# @package _group_
-experiment_name: ???
-log_dir: "${env:WORK}/experiments/neurips"
-seed: ???
-resume: null

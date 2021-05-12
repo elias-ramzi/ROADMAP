@@ -1,0 +1,13 @@
+# @package _group_
+- name: AdaptativeAP
+  weight: 1.0
+  kwargs:
+    theta: 0.5
+    mu: 0.025
+    tau: 0.1
+
+- name: ContrastiveLoss
+  weight: 1.0
+  kwargs:
+    pos_margin: 0.9
+    neg_margin: 0.6

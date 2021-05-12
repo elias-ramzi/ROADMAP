@@ -1,0 +1,14 @@
+# @package _group_
+- name: AdamW
+  params:
+  kwargs:
+    lr: 0.00001
+    weight_decay: 0.0005
+  scheduler_on_epoch:
+    name: MultiStepLR
+    kwargs:
+      milestones: [30, 70]
+      gamma: 0.3
+      last_epoch: -1
+  scheduler_on_step:
+  scheduler_on_val:

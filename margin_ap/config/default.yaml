@@ -1,0 +1,21 @@
+defaults:
+
+    - experience: cnam
+
+    - grid_search: smoothap
+
+    - dataset: sop
+
+    - loss: smoothap
+
+    - memory: default
+
+    - model: resnet
+
+    - optimizer: sop
+
+    - transform: sop
+
+hydra:
+  run:
+    dir: ${experience.log_dir}/${experience.experiment_name}/outputs

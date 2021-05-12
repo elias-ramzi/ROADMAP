@@ -1,7 +1,0 @@
-# @package _group_
-losses:
-  ContrastiveLoss:
-    pos_margin: 1.0
-    neg_margin: 0.5
-
-weights: {}

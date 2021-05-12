@@ -1,8 +1,0 @@
-# @package _group_
-losses:
-  AffineAP:
-    theta: 0.5
-    mu_n: 0.025
-    mu_p: 0.025
-
-weights: {}
