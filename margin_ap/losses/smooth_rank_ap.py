@@ -36,7 +36,11 @@ def piecewise_affine(tens, theta, mu_n, mu_p):
     constrain_neg = (tens[neg_mask] > -mu_n).type(tens.dtype)
     constrain_pos = (tens[pos_mask] < mu_p)
 
-    tens[neg_mask] = ((theta / mu_n) * tens[neg_mask] + theta) * constrain_neg
+    if mu_n > 0.:
+        tens[neg_mask] = ((theta / mu_n) * tens[neg_mask] + theta) * constrain_neg
+    else:
+        tens[neg_mask] *= 0.
+
     tens[pos_mask] = (((1 - theta) / mu_p) * tens[pos_mask] + theta) * constrain_pos.type(tens.dtype) + (~constrain_pos).type(tens.dtype)
 
     return tens
@@ -58,11 +62,11 @@ def change_regime(tens, theta, mu, tau):
     return tens
 
 
-def ap_upper_bound(tens, mu, tau, target):
-    target = target.unsqueeze(1).bool()
+def positive_influence(tens, mu, target):
+    target = target.unsqueeze(0).repeat(tens.size(0), 1).bool()
 
-    tens[target] = piecewise_affine(tens, 0.5, mu, mu)
-    tens[~target] = change_regime(tens, 0.5, mu, tau)
+    tens[target] = piecewise_affine(tens[target], 0.5, 0., mu)
+    tens[~target] = piecewise_affine(tens[~target], 0.5, mu, mu)
 
     return tens
 
@@ -73,13 +77,15 @@ class SmoothRankAP(nn.Module):
         rank_approximation,
         return_type='1-mAP',
         gamma=None,
-        with_true_rank=False
+        with_true_rank=False,
+        rank_approximation_supervised=False,
     ):
         super().__init__()
         self.rank_approximation = rank_approximation
         self.return_type = return_type
         self.gamma = gamma
         self.with_true_rank = with_true_rank
+        self.rank_approximation_supervised = rank_approximation_supervised
         assert return_type in ["1-mAP", "1-AP", "AP", 'mAP']
 
     def general_forward(self, scores, target, verbose=False):
@@ -98,7 +104,11 @@ class SmoothRankAP(nn.Module):
             query = scores[idx]
             # shape M x M
             query = query.view(1, -1) - query.view(-1, 1)
-            query = self.rank_approximation(query) * mask
+            if not self.rank_approximation_supervised:
+                query = self.rank_approximation(query) * mask
+            else:
+                query = self.rank_approximation(query, target=target[idx]) * mask
+
             # shape M
             pos_mask = target[idx]
             pos_mask = pos_mask.view(1, -1)
@@ -132,7 +142,10 @@ class SmoothRankAP(nn.Module):
         sim_diff = scores.unsqueeze(1) - scores.unsqueeze(1).permute(0, 2, 1)
 
         # pass through the sigmoid
-        sim_diff_sigmoid = self.rank_approximation(sim_diff)
+        if not self.rank_approximation_supervised:
+            sim_diff_sigmoid = self.rank_approximation(sim_diff)
+        else:
+            sim_diff_sigmoid = self.rank_approximation(sim_diff, target=target)
 
         sim_sg = sim_diff_sigmoid * mask
         # compute the rankings
@@ -246,6 +259,19 @@ class AdaptativeAP(SmoothRankAP):
 
     def extra_repr(self,):
         repr = f"mu={self.mu}, tau={self.tau}, {self.my_repr}"
+        return repr
+
+
+class PositiveInfluence(SmoothRankAP):
+
+    def __init__(self, mu, **kwargs):
+        rank_approximation = partial(positive_influence, mu=mu)
+        kwargs["rank_approximation_supervised"] = True
+        super().__init__(rank_approximation, **kwargs)
+        self.mu = mu
+
+    def extra_repr(self,):
+        repr = f"mu={self.mu}, {self.my_repr}"
         return repr
 
 

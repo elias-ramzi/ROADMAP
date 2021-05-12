@@ -46,7 +46,7 @@ class HingeAP(torch.nn.Module):
             else:
                 mask = mask.t()
             loss = StructuredMAPRankingLossFunction.apply(
-                prediction.type(torch.Float), target.type(torch.long), mask.type(torch.bool)
+                prediction.type(torch.float), target.type(torch.long), mask.type(torch.bool)
             )
             if self.return_type == '1-mAP':
                 return loss.mean()
