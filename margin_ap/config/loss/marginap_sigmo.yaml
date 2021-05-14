@@ -4,5 +4,5 @@
   kwargs:
     temp: 0.01
     tau: 1.0
-    offset: 1.0
-    margin: null
+    offset: 1.44
+    margin: 0.05

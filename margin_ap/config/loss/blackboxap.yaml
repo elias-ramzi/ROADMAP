@@ -1,0 +1,6 @@
+# @package _group_
+- name: BlackBoxAP
+  weight: 1.0
+  kwargs:
+    lambda_val: 4.0
+    margin: 0.02

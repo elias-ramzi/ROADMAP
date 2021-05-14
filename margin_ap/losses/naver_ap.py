@@ -1,9 +1,6 @@
-from typing import Optional
-
 import numpy as np
 import torch
 import torch.nn as nn
-from torch import Tensor
 
 
 class NaverAP (nn.Module):
@@ -21,14 +18,14 @@ class NaverAP (nn.Module):
     """
     def __init__(
         self,
-        nq: Optional[int] = 20,
-        min: Optional[int] = -1,
-        max: Optional[int] = 1,
+        nq=20,
+        min=-1,
+        max=1,
         return_type='1-mAP',
     ):
         super().__init__()
         assert isinstance(nq, int) and 2 <= nq <= 100
-        assert return_type in ["1-mAP", "AP", "1-AP", "debug"]
+        assert return_type in ["1-mAP", "AP", "1-AP", "mAP", "debug"]
         self.nq = nq
         self.min = min
         self.max = max
@@ -53,7 +50,7 @@ class NaverAP (nn.Module):
         q.weight[0] = q.weight[-1] = 0
         q.bias[0] = q.bias[-1] = 1
 
-    def forward(self, x: Tensor, label: Tensor, qw: Optional[Tensor] = None) -> Tensor:
+    def forward(self, x, label, qw=None):
         assert x.shape == label.shape  # N x M
         N, M = x.shape
         # Quantize all predictions

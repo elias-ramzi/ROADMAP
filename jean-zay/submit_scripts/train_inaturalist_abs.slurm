@@ -9,8 +9,8 @@
 #SBATCH --distribution=block:block   # we pin the tasks on contiguous cores
 #SBATCH --time=30:00:00              # temps d’exécution maximum demande (HH:MM:SS)
 #SBATCH --qos=qos_gpu-t4
-#SBATCH --output=TRCON%A_%a.out # output file name
-#SBATCH --error=TRCON%A_%a.err  # error file name
+#SBATCH --output=%A_%a.out # output file name
+#SBATCH --error=%A_%a.err  # error file name
 #SBATCH --array=0-4
 
 set -x
@@ -29,17 +29,14 @@ batch_size[4]=384
 
 
 srun python margin_ap/single_experiment_runner.py \
-'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_${model.kwargs.backbone_name}' \
+'experience.experiment_name=inat_${loss.0.name}_${loss.1.name}_${dataset.sampler.kwargs.batch_size}' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Inaturalist' \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/inat' \
 experience.max_iter=90 \
 experience.num_workers=10 \
-model=deit \
-optimizer=inaturalist_deit \
+optimizer=inaturalist \
 dataset=inaturalist \
 dataset.sampler.kwargs.batch_size=${batch_size[${SLURM_ARRAY_TASK_ID}]} \
 transform=inaturalist \
-loss=contrastive \
-loss.0.kwargs.pos_margin=0.9 \
-loss.0.kwargs.neg_margin=0.6
+loss=marginap_abs

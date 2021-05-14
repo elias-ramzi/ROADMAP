@@ -1,0 +1,7 @@
+# @package _group_
+- name: NaverAP
+  weight: 1.0
+  kwargs:
+    nq: 20
+    min: -1
+    max: 1

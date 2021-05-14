@@ -38,33 +38,57 @@ def piecewise_affine(tens, theta, mu_n, mu_p):
     return tens
 
 
-def step_rank(tens, temp, tau, offset, target=None):
+def step_rank(tens, temp, tau, offset, margin=None, target=None):
     target = target.squeeze()
     mask = target.unsqueeze(target.ndim - 1).bool()
     target = lib.create_label_matrix(target).bool() * mask
     pos_mask = (tens > 0).bool()
     neg_mask = ~pos_mask
 
-    tens[~target & neg_mask] = tau_sigmoid(tens[~target & neg_mask], temp)
-    tens[~target & pos_mask] = tau * tens[~target & pos_mask] + offset
+    if not margin:
+        tens[~target & pos_mask] = tau * tens[~target & pos_mask] + offset
+    else:
+        margin_mask = tens > margin
+        tens[~target & pos_mask & ~margin_mask] = 0.5 + tau_sigmoid(tens[~target & pos_mask & ~margin_mask], temp).type(tens.dtype)
+        tens[~target & pos_mask & margin_mask] = tau * tens[~target & pos_mask & margin_mask] + offset
+
+    tens[~target & neg_mask] = tau_sigmoid(tens[~target & neg_mask], temp).type(tens.dtype)
 
     tens[target] = torch.heaviside(tens[target], values=torch.tensor(1., device=tens.device, dtype=tens.dtype))
 
     return tens
 
 
-def step_smoothap(tens, temp, tau, offset, target=None):
+def no_saturarion_smoothap(tens, temp, tau, offset, target=None):
     target = target.squeeze()
     mask = target.unsqueeze(target.ndim - 1).bool()
     target = lib.create_label_matrix(target).bool() * mask
     pos_mask = (tens > 0).bool()
     neg_mask = ~pos_mask
 
-    tens[~target & neg_mask] = tau_sigmoid(tens[~target & neg_mask], temp)
     tens[~target & pos_mask] = tau * tens[~target & pos_mask] + offset
 
-    tens[target] = tau_sigmoid(tens[target], temp)
+    tens[~target & neg_mask] = tau_sigmoid(tens[~target & neg_mask], temp).type(tens.dtype)
 
+    tens[target] = tau_sigmoid(tens[target], temp).type(tens.dtype)
+
+    return tens
+
+
+def step_smoothap(tens, temp, ponder=None, target=None):
+    target = target.squeeze()
+    mask = target.unsqueeze(target.ndim - 1).bool()
+    target = lib.create_label_matrix(target).bool() * mask
+
+    if ponder is not None:
+        pos_mask = (tens > 0).bool()
+        neg_mask = ~pos_mask
+        tens[~target & neg_mask] = tau_sigmoid(tens[~target & neg_mask], temp).type(tens.dtype)
+        tens[~target & pos_mask] = ponder * tau_sigmoid(tens[~target & pos_mask], temp).type(tens.dtype)
+    else:
+        tens[~target] = tau_sigmoid(tens[~target], temp).type(tens.dtype)
+
+    tens[target] = torch.heaviside(tens[target], values=torch.tensor(1., device=tens.device, dtype=tens.dtype))
     return tens
 
 
@@ -212,14 +236,26 @@ class SmoothAP(SmoothRankAP):
 
 class StepSmoothAP(SmoothRankAP):
 
+    def __init__(self, temp=0.01, ponder=None, **kwargs):
+        rank_approximation = partial(step_smoothap, temp=temp, ponder=ponder)
+        kwargs["rank_approximation_supervised"] = True
+        super().__init__(rank_approximation, **kwargs)
+        self.temp = temp
+
+    def extra_repr(self,):
+        repr = f"temp={self.temp}, {self.my_repr}"
+        return repr
+
+
+class NoSaturationSmoothAP(SmoothRankAP):
+
     def __init__(self, temp=0.01, tau=1.0, offset=1.0, **kwargs):
-        rank_approximation = partial(step_smoothap, temp=temp, tau=tau, offset=offset)
+        rank_approximation = partial(no_saturarion_smoothap, temp=temp, tau=tau, offset=offset)
         kwargs["rank_approximation_supervised"] = True
         super().__init__(rank_approximation, **kwargs)
         self.temp = temp
         self.tau = tau
         self.offset = offset
-        # import ipdb; ipdb.set_trace()
 
     def extra_repr(self,):
         repr = f"temp={self.temp}, tau={self.tau}, offset={self.offset}, {self.my_repr}"
@@ -242,16 +278,17 @@ class AffineAP(SmoothRankAP):
 
 class MarginAP(SmoothRankAP):
 
-    def __init__(self, temp, tau, offset, **kwargs):
-        rank_approximation = partial(step_rank, temp=temp, tau=tau, offset=offset)
+    def __init__(self, temp, tau, offset, margin=None, **kwargs):
+        rank_approximation = partial(step_rank, temp=temp, tau=tau, offset=offset, margin=margin)
         kwargs["rank_approximation_supervised"] = True
         super().__init__(rank_approximation, **kwargs)
         self.temp = temp
         self.tau = tau
         self.offset = offset
+        self.margin = margin
 
     def extra_repr(self,):
-        repr = f"temp={self.temp}, tau={self.tau}, offset={self.offset}, {self.my_repr}"
+        repr = f"temp={self.temp}, tau={self.tau}, offset={self.offset}, margin={self.margin}, {self.my_repr}"
         return repr
 
 
