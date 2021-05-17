@@ -96,6 +96,8 @@ def base_update(
     memory=None,
 ):
     meter = lib.DictAverage()
+    net.train()
+    net.zero_grad()
 
     for i, batch in enumerate(loader):
         logs = _batch_optimization(

@@ -22,14 +22,14 @@ export TORCH_HOME=${SCRATCH}/pretrained_models
 
 
 srun python margin_ap/single_experiment_runner.py \
-'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}' \
+'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_sigmo' \
 experience.seed=333 \
 'experience.log_dir=${env:SCRATCH}/experiments/inat' \
 experience.max_iter=90 \
 experience.num_workers=10 \
 optimizer=inaturalist \
 dataset=inaturalist \
-dataset.sampler.kwargs.batch_size=384 \
+dataset.sampler.kwargs.batch_size=128 \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Inaturalist' \
 transform=inaturalist \
-loss=fastap
+loss=marginap_sigmo

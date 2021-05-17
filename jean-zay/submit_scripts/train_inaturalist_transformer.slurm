@@ -8,9 +8,8 @@
 #SBATCH --distribution=block:block   # we pin the tasks on contiguous cores
 #SBATCH --time=30:00:00              # temps d’exécution maximum demande (HH:MM:SS)
 #SBATCH --qos=qos_gpu-t4
-#SBATCH --output=train_inat%A_%a.out # output file name
-#SBATCH --error=train_inat%A_%a.err  # error file name
-#SBATCH --array=0-1
+#SBATCH --output=train_inat%j.out # output file name
+#SBATCH --error=train_inat%j.err  # error file name
 
 set -x
 cd $WORK/margin_ap
@@ -21,18 +20,17 @@ module load pytorch-gpu/py3/1.8.0
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
 loss[0]="smoothap"
-loss[1]="adaptativeap"
 
 srun python margin_ap/single_experiment_runner.py \
-'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_${model.kwargs.backbone_name}' \
+'experience.experiment_name=inat_deit_${loss.0.name}_${dataset.sampler.kwargs.batch_size}' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Inaturalist' \
 experience.seed=333 \
-'experience.log_dir=${env:SCRATCH}/experiments/inat' \
-experience.max_iter=100 \
+'experience.log_dir=${env:SCRATCH}/experiments/inat_deit' \
+experience.max_iter=90 \
 experience.num_workers=10 \
-optimizer=inat_adamw \
+optimizer=inaturalist_deit \
 dataset=inaturalist \
 dataset.sampler.kwargs.batch_size=128 \
 transform=inaturalist \
 model=deit \
-loss=${loss[${SLURM_ARRAY_TASK_ID}]}
+loss=smoothap

@@ -4,5 +4,5 @@ name: XBM
 activate_after: -1
 weight: 1.0
 kwargs:
-  size: 5824
-  unique: True
+  size: 100000
+  unique: False

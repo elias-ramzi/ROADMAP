@@ -1,7 +1,9 @@
 import logging
+import random
 from os.path import join
 
 import torch
+import numpy as np
 from ray import tune
 
 
@@ -40,6 +42,10 @@ def checkpoint(
     state_dict["score"] = score
     state_dict["best_score"] = best_score
     state_dict["best_model"] = f"{best_model}.ckpt"
+
+    state_dict["RANDOM_STATE"] = random.getstate()
+    state_dict["NP_STATE"] = np.random.get_state()
+    state_dict["TORCH_STATE"] = torch.random.get_rng_state()
 
     if log_dir is None:
         torch.save(state_dict, join(tune.get_trial_dir(), "rolling.ckpt"))

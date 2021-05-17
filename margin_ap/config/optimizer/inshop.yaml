@@ -3,11 +3,11 @@
   params: backbone
   kwargs:
     lr: 0.00001
-    weight_decay: 0.0004
+    weight_decay: 0.0001
   scheduler_on_epoch:
     name: MultiStepLR
     kwargs:
-      milestones: [25, 50]
+      milestones: [30]
       gamma: 0.3
   scheduler_on_step:
   scheduler_on_val:
@@ -16,11 +16,11 @@
   params: fc
   kwargs:
     lr: 0.00001
-    weight_decay: 0.0004
+    weight_decay: 0.0001
   scheduler_on_epoch:
     name: MultiStepLR
     kwargs:
-      milestones: [25, 50]
+      milestones: [30]
       gamma: 0.3
   scheduler_on_step:
   scheduler_on_val:

@@ -22,5 +22,5 @@ log_grad: False
 num_workers: 16
 pin_memory: True
 
-apex: False
+sub_batch: 128
 parallel_crit: False
