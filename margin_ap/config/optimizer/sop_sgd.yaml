@@ -7,20 +7,22 @@
   scheduler_on_epoch:
     name: MultiStepLR
     kwargs:
-      milestones: [30,50]
-      gamma: 0.3
+      milestones: [100]
+      gamma: 0.1
+      last_epoch: -1
   scheduler_on_step:
   scheduler_on_val:
 
 - name: Adam
   params: fc
   kwargs:
-    lr: 0.00002
+    lr: 0.00001
     weight_decay: 0.0001
   scheduler_on_epoch:
     name: MultiStepLR
     kwargs:
-      milestones: [30,50]
-      gamma: 0.3
+      milestones: [100]
+      gamma: 0.1
+      last_epoch: -1
   scheduler_on_step:
   scheduler_on_val:

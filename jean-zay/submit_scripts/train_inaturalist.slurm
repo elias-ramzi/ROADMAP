@@ -35,4 +35,5 @@ dataset=inaturalist \
 dataset.sampler.kwargs.batch_size=64 \
 transform=inaturalist \
 loss=contrastive \
-memory=inaturalist
+memory=inaturalist \
+memory.kwargs.size=50000
