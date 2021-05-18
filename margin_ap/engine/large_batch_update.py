@@ -1,3 +1,5 @@
+import logging
+
 import torch
 from torch.utils.data import DataLoader, Subset
 
@@ -19,7 +21,7 @@ def _compute_descriptors(net, loader,):
 
 
 def _batch_optimization(net, loader, grad):
-    for i, batch in loader:
+    for i, batch in enumerate(loader):
         # computing activations needed for backpropagation for a subset of images
         di = net(batch["image"].cuda())
 
@@ -32,8 +34,6 @@ def run_large_batch(net, loader, criterion, scaler):
     Memory effective backpropagation algorithm for optimizing a
     loss function, as described in the paper
     https://arxiv.org/abs/1906.07589
-
-    You should put net.train() and zero_grad before using this function
     """
     descriptors, labels = _compute_descriptors(net, loader)
     # Computing gradient starting at the descriptor level
@@ -70,7 +70,6 @@ def run_large_batch(net, loader, criterion, scaler):
 
     # backpropagating gradient for all images. Proceeding in subset batches
     _batch_optimization(net, loader, grad)
-
     return logs
 
 
@@ -117,6 +116,15 @@ def large_batch_update(
         net.zero_grad()
         _ = [crit.zero_grad() for crit, w in criterion]
 
+        for sch in scheduler["on_step"]:
+            sch.step()
+
+        if scaler is not None:
+            scaler.update()
+
         meter.update(logs)
+        logging.info(f'Iteration : {i+1}/{len(loader)}')
+        for k, v in logs.items():
+            logging.info(f'Loss: {k}: {v} ')
 
     return meter.avg

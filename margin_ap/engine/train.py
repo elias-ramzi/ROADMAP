@@ -7,7 +7,7 @@ from ray import tune
 
 import margin_ap.utils as lib
 
-from .base_update import base_update
+from .update import update
 from .evaluate import evaluate
 from . import checkpoint
 
@@ -47,7 +47,7 @@ def train(
             num_workers=config.experience.num_workers,
             pin_memory=config.experience.pin_memory,
         )
-        logs = base_update(
+        logs = update(
             config=config,
             net=net,
             loader=loader,

@@ -24,3 +24,4 @@ pin_memory: True
 
 sub_batch: 128
 parallel_crit: False
+update_type: base_update

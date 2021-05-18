@@ -38,21 +38,26 @@ def piecewise_affine(tens, theta, mu_n, mu_p):
     return tens
 
 
-def step_rank(tens, temp, tau, offset, margin=None, target=None):
+def step_rank(tens, temp, tau, offset, margin=None, start=0.5, target=None):
     target = target.squeeze()
     mask = target.unsqueeze(target.ndim - 1).bool()
     target = lib.create_label_matrix(target).bool() * mask
     pos_mask = (tens > 0).bool()
     neg_mask = ~pos_mask
 
+    if isinstance(temp, str):
+        temp_n, temp_p = temp.split("_")
+    else:
+        temp_n = temp_p = temp
+
     if not margin:
         tens[~target & pos_mask] = tau * tens[~target & pos_mask] + offset
     else:
         margin_mask = tens > margin
-        tens[~target & pos_mask & ~margin_mask] = 0.5 + tau_sigmoid(tens[~target & pos_mask & ~margin_mask], temp).type(tens.dtype)
+        tens[~target & pos_mask & ~margin_mask] = start + tau_sigmoid(tens[~target & pos_mask & ~margin_mask], temp_n).type(tens.dtype)
         tens[~target & pos_mask & margin_mask] = tau * tens[~target & pos_mask & margin_mask] + offset
 
-    tens[~target & neg_mask] = tau_sigmoid(tens[~target & neg_mask], temp).type(tens.dtype)
+    tens[~target & neg_mask] = tau_sigmoid(tens[~target & neg_mask], temp_p).type(tens.dtype)
 
     tens[target] = torch.heaviside(tens[target], values=torch.tensor(1., device=tens.device, dtype=tens.dtype))
 
@@ -278,8 +283,8 @@ class AffineAP(SmoothRankAP):
 
 class MarginAP(SmoothRankAP):
 
-    def __init__(self, temp, tau, offset, margin=None, **kwargs):
-        rank_approximation = partial(step_rank, temp=temp, tau=tau, offset=offset, margin=margin)
+    def __init__(self, temp, tau, offset, margin=None, start=0.5, **kwargs):
+        rank_approximation = partial(step_rank, temp=temp, tau=tau, offset=offset, margin=margin, start=start)
         kwargs["rank_approximation_supervised"] = True
         super().__init__(rank_approximation, **kwargs)
         self.temp = temp
