@@ -24,12 +24,10 @@ export TORCH_HOME=${SCRATCH}/pretrained_models
 srun python margin_ap/single_experiment_runner.py \
 'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}' \
 experience.seed=333 \
-'experience.log_dir=${env:SCRATCH}/experiments/sop' \
+'experience.log_dir=${env:SCRATCH}/experiments/sop_ablation' \
 experience.max_iter=100 \
 experience.num_workers=10 \
-optimizer=inaturalist \
 dataset.sampler.kwargs.batch_size=384 \
 dataset.sampler.kwargs.batches_per_super_pair=4 \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Stanford_Online_Products' \
-transform=inaturalist \
-loss=smoothap
+loss=marginap_sigmo
