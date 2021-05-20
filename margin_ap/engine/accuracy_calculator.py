@@ -104,9 +104,9 @@ class CustomCalculator(AccuracyCalculator):
         return self._get_accuracy(self.curr_function_dict, **kwargs)
 
 
-def get_accuracy_calculator(exclude_ranks=None):
+def get_accuracy_calculator(exclude_ranks=None, k=2047):
     exclude = ['NMI', 'AMI']
     if exclude_ranks:
         for r in exclude_ranks:
             exclude.append(f'recall_at_{r}')
-    return CustomCalculator(exclude=exclude, k=2047)
+    return CustomCalculator(exclude=exclude, k=k)

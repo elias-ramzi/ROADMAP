@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=TRCON     # job name
+#SBATCH --job-name=ROAD     # job name
 #SBATCH --ntasks=1                   # number of MP tasks
 #SBATCH --ntasks-per-node=1          # number of MPI tasks per node
 #SBATCH --gres=gpu:1                 # number of GPUs per node
@@ -32,11 +32,13 @@ srun python margin_ap/single_experiment_runner.py \
 'experience.experiment_name=inat_${loss.0.name}_${loss.1.name}_${dataset.sampler.kwargs.batch_size}' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Inaturalist' \
 experience.seed=333 \
-'experience.log_dir=${env:SCRATCH}/experiments/inat' \
+'experience.log_dir=${env:SCRATCH}/experiments/inat_marginap_noup' \
 experience.max_iter=90 \
 experience.num_workers=10 \
 optimizer=inaturalist \
 dataset=inaturalist \
 dataset.sampler.kwargs.batch_size=${batch_size[${SLURM_ARRAY_TASK_ID}]} \
 transform=inaturalist \
-loss=marginap_abs
+loss=marginap_sigmo_abs \
++loss.0.kwargs.start=0.0 \
+loss.0.kwargs.offset=1.0
