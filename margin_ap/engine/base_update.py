@@ -23,8 +23,8 @@ def _batch_optimization(
         label_matrix = lib.create_label_matrix(labels)
 
         if memory:
+            memory_embeddings, memory_labels = memory(di.detach(), labels, batch["path"])
             if epoch >= config.memory.activate_after:
-                memory_embeddings, memory_labels = memory(di.detach(), labels, batch["path"])
                 memory_scores = torch.mm(di, memory_embeddings.t())
                 memory_label_matrix = lib.create_label_matrix(labels, memory_labels)
 
@@ -34,12 +34,14 @@ def _batch_optimization(
             if hasattr(crit, 'takes_embeddings'):
                 loss = crit(di, labels.view(-1))
                 if memory:
-                    mem_loss = crit(di, labels.view(-1), memory_embeddings, memory_labels.view(-1))
+                    if epoch >= config.memory.activate_after:
+                        mem_loss = crit(di, labels.view(-1), memory_embeddings, memory_labels.view(-1))
 
             else:
                 loss = crit(scores, label_matrix)
                 if memory:
-                    mem_loss = crit(memory_scores, memory_label_matrix)
+                    if epoch >= config.memory.activate_after:
+                        mem_loss = crit(memory_scores, memory_label_matrix)
 
             loss = loss.mean()
             if weight == 'adaptative':

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=SMO     # job name
+#SBATCH --job-name=384     # job name
 #SBATCH --ntasks=1                   # number of MP tasks
 #SBATCH --ntasks-per-node=1          # number of MPI tasks per node
 #SBATCH --gres=gpu:1                 # number of GPUs per node
@@ -11,7 +11,7 @@
 #SBATCH --qos=qos_gpu-t3
 #SBATCH --output=%A_%a.out # output file name
 #SBATCH --error=%A_%a.err  # error file name
-#SBATCH --array=0-1
+#SBATCH --array=0
 
 set -x
 cd $WORK/margin_ap
@@ -30,11 +30,11 @@ export TORCH_HOME=${SCRATCH}/pretrained_models
 # batch_size[2]=128
 # batches_per_super_pair[2]=10
 
-batch_size[0]=224
-batches_per_super_pair[0]=10
+# batch_size[0]=224
+# batches_per_super_pair[0]=10
 
-batch_size[1]=384
-batches_per_super_pair[1]=10
+batch_size[0]=384
+batches_per_super_pair[0]=10
 
 
 srun python margin_ap/single_experiment_runner.py \

@@ -40,10 +40,13 @@ class XBM(nn.Module):
             self.labels_memory[k] = lb
 
     def get_occupied_storage(self,):
+        if not self.features_memory:
+            return torch.tensor([]), torch.tensor([])
+
         if self.unique:
             return torch.stack(list(self.features_memory.values())), torch.stack(list(self.labels_memory.values()))
-        else:
-            return torch.stack(list(self.features_memory)), torch.stack(list(self.labels_memory))
+
+        return torch.stack(list(self.features_memory)), torch.stack(list(self.labels_memory))
 
     def forward(self, features, labels, keys=None):
 
