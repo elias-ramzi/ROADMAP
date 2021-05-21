@@ -21,10 +21,19 @@ module load pytorch-gpu/py3/1.8.0
 
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
-weight[0]=0.1
-weight[1]=2
-weight[2]=5
-weight[3]=10
+
+pos_margin[0]=0.9
+neg_margin[0]=0.5
+
+pos_margin[0]=0.9
+neg_margin[0]=0.4
+
+pos_margin[0]=0.9
+neg_margin[0]=0.7
+
+pos_margin[0]=0.9
+neg_margin[0]=0.8
+
 
 srun python margin_ap/single_experiment_runner.py \
 'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_lambda${loss.1.weight}' \
@@ -40,4 +49,5 @@ transform=inaturalist \
 loss=marginap_sigmo_abs \
 +loss.0.kwargs.start=0.0 \
 loss.0.kwargs.offset=1.0 \
-loss.1.weight=${weight[${SLURM_ARRAY_TASK_ID}]}
+loss.1.kwargs.pos_margin=${pos_margin[${SLURM_ARRAY_TASK_ID}]}
+loss.1.kwargs.neg_margin=${neg_margin[${SLURM_ARRAY_TASK_ID}]}

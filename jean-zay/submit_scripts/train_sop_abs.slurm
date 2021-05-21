@@ -21,20 +21,20 @@ module load pytorch-gpu/py3/1.8.0
 
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
-# batch_size[0]=32
-# batches_per_super_pair[0]=40
-#
-# batch_size[1]=64
-# batches_per_super_pair[1]=20
-#
-# batch_size[2]=128
-# batches_per_super_pair[2]=10
+batch_size[0]=32
+batches_per_super_pair[0]=40
+
+batch_size[1]=64
+batches_per_super_pair[1]=20
+
+batch_size[2]=128
+batches_per_super_pair[2]=10
 
 batch_size[0]=224
 batches_per_super_pair[0]=10
 
-# batch_size[1]=384
-# batches_per_super_pair[1]=10
+batch_size[1]=384
+batches_per_super_pair[1]=10
 
 
 srun python margin_ap/single_experiment_runner.py \
