@@ -4,6 +4,7 @@ from .entropy_regularization import EntropyRegularization
 from .fast_ap import FastAP
 from .hinge_ap import HingeAP
 from .naver_ap import NaverAP
+from .pair_loss import PairLoss
 from .smooth_rank_ap import (
     HeavisideAP,
     SmoothAP,
@@ -23,6 +24,7 @@ __all__ = [
     'FastAP',
     'HingeAP',
     'NaverAP',
+    'PairLoss',
     'HeavisideAP',
     'AffineAP',
     'SmoothAP',

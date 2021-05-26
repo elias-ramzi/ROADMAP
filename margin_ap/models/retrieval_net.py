@@ -92,6 +92,12 @@ class RetrievalNet(nn.Module):
         pooling='default',
     ):
         super().__init__()
+        if isinstance(with_autocast, str):
+            if with_autocast.lower() == 'true':
+                with_autocast = True
+            if with_autocast.lower() == 'false':
+                with_autocast = False
+
         assert isinstance(without_fc, bool)
         assert isinstance(norm_features, bool)
         self.norm_features = norm_features

@@ -25,21 +25,21 @@ export TORCH_HOME=${SCRATCH}/pretrained_models
 pos_margin[0]=0.9
 neg_margin[0]=0.5
 
-pos_margin[0]=0.9
-neg_margin[0]=0.4
+pos_margin[1]=0.9
+neg_margin[1]=0.4
 
-pos_margin[0]=0.9
-neg_margin[0]=0.7
+pos_margin[2]=0.9
+neg_margin[2]=0.7
 
-pos_margin[0]=0.9
-neg_margin[0]=0.8
+pos_margin[3]=0.9
+neg_margin[3]=0.8
 
 
 srun python margin_ap/single_experiment_runner.py \
-'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_lambda${loss.1.weight}' \
+'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_pos${loss.1.kwargs.pos_margin}_neg${loss.1.kwargs.neg_margin}' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Inaturalist' \
 experience.seed=333 \
-'experience.log_dir=${env:SCRATCH}/experiments/inat_grid_lambda' \
+'experience.log_dir=${env:SCRATCH}/experiments/inat_grid_margin' \
 experience.max_iter=90 \
 experience.num_workers=10 \
 optimizer=inaturalist \
@@ -49,5 +49,5 @@ transform=inaturalist \
 loss=marginap_sigmo_abs \
 +loss.0.kwargs.start=0.0 \
 loss.0.kwargs.offset=1.0 \
-loss.1.kwargs.pos_margin=${pos_margin[${SLURM_ARRAY_TASK_ID}]}
+loss.1.kwargs.pos_margin=${pos_margin[${SLURM_ARRAY_TASK_ID}]} \
 loss.1.kwargs.neg_margin=${neg_margin[${SLURM_ARRAY_TASK_ID}]}

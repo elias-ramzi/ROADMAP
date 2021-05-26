@@ -7,7 +7,7 @@
   scheduler_on_epoch:
       name: MultiStepLR
       kwargs:
-        milestones: [30,50]
+        milestones: [50]
         gamma: 0.3
         last_epoch: -1
   scheduler_on_step:
@@ -21,7 +21,7 @@
   scheduler_on_epoch:
       name: MultiStepLR
       kwargs:
-        milestones: [30,50]
+        milestones: [50]
         gamma: 0.3
         last_epoch: -1
   scheduler_on_step:
