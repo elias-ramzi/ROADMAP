@@ -52,6 +52,7 @@ class CustomCalculator(AccuracyCalculator):
         embeddings_come_from_same_source,
         include=(),
         exclude=(),
+        return_indices=False,
     ):
         [query, reference, query_labels, reference_labels] = [
             c_f.numpy_to_torch(x)
@@ -101,6 +102,8 @@ class CustomCalculator(AccuracyCalculator):
         if any(x in self.requires_clustering() for x in self.get_curr_metrics()):
             kwargs["cluster_labels"] = self.get_cluster_labels(**kwargs)
 
+        if return_indices:
+            return knn_indices, self._get_accuracy(self.curr_function_dict, **kwargs)
         return self._get_accuracy(self.curr_function_dict, **kwargs)
 
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=XBM     # job name
+#SBATCH --job-name=RHO     # job name
 #SBATCH --ntasks=1                   # number of MP tasks
 #SBATCH --ntasks-per-node=1          # number of MPI tasks per node
 #SBATCH --gres=gpu:1                 # number of GPUs per node
@@ -21,25 +21,23 @@ module load pytorch-gpu/py3/1.8.0
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
 
-loss[0]=fastap
-with_autocast[0]=True
-
-
-loss[1]=blackboxap
-with_autocast[1]=False
+batch_size[0]=128
+batch_size[1]=32
 
 
 sleep $(( 60*${SLURM_ARRAY_TASK_ID}))
 srun python margin_ap/single_experiment_runner.py \
-'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_final' \
+'experience.experiment_name=inat_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_rho100' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Inaturalist' \
 experience.seed=333 \
-'experience.log_dir=${env:SCRATCH}/experiments/inat_compa_64' \
+'experience.log_dir=${env:SCRATCH}/experiments/inat_big_rho' \
 experience.max_iter=90 \
 experience.num_workers=10 \
 optimizer=inaturalist \
 dataset=inaturalist \
-dataset.sampler.kwargs.batch_size=64 \
+dataset.sampler.kwargs.batch_size=${batch_size[${SLURM_ARRAY_TASK_ID}]} \
 transform=inaturalist \
-loss=${loss[${SLURM_ARRAY_TASK_ID}]} \
-model.kwargs.with_autocast=${with_autocast[${SLURM_ARRAY_TASK_ID}]}
+loss=marginap_sigmo \
++loss.0.kwargs.start=0.0 \
+loss.0.kwargs.offset=1.0 \
+loss.0.kwargs.tau=100 \

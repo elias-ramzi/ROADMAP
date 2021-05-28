@@ -42,3 +42,6 @@ class PairLoss(nn.Module):
             return self.compute_loss(embeddings, labels, embeddings, labels)
 
         return self.compute_loss(embeddings, labels, ref_embeddings, ref_labels)
+
+    def extra_repr(self,):
+        return f"margin={self.margin}"

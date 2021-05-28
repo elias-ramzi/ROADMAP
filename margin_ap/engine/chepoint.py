@@ -46,6 +46,7 @@ def checkpoint(
     state_dict["RANDOM_STATE"] = random.getstate()
     state_dict["NP_STATE"] = np.random.get_state()
     state_dict["TORCH_STATE"] = torch.random.get_rng_state()
+    state_dict["TORCH_CUDA_STATE"] = torch.cuda.get_rng_state_all()
 
     if log_dir is None:
         torch.save(state_dict, join(tune.get_trial_dir(), "rolling.ckpt"))

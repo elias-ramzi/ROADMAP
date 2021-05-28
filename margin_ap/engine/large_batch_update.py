@@ -88,43 +88,45 @@ def large_batch_update(
     net.train()
     net.zero_grad()
 
-    for i, batch_idx in enumerate(loader.batch_sampler.batches):
-        dataset = Subset(loader.dataset, batch_idx)
+    with torch.cuda.amp.autocast(enabled=(scaler is not None)):
 
-        sub_loader = DataLoader(
-            dataset,
-            batch_size=config.experience.sub_batch,
-            num_workers=config.experience.num_workers,
-            pin_memory=True,
-            drop_last=False,
-            shuffle=False,
-        )
+        for i, batch_idx in enumerate(loader.batch_sampler.batches):
+            dataset = Subset(loader.dataset, batch_idx)
 
-        logs = run_large_batch(
-            net,
-            sub_loader,
-            criterion,
-            scaler
-        )
+            sub_loader = DataLoader(
+                dataset,
+                batch_size=config.experience.sub_batch,
+                num_workers=config.experience.num_workers,
+                pin_memory=True,
+                drop_last=False,
+                shuffle=False,
+            )
 
-        for key, opt in optimizer.items():
-            if scaler is None:
-                opt.step()
-            else:
-                scaler.step(opt)
+            logs = run_large_batch(
+                net,
+                sub_loader,
+                criterion,
+                scaler
+            )
 
-        net.zero_grad()
-        _ = [crit.zero_grad() for crit, w in criterion]
+            for key, opt in optimizer.items():
+                if scaler is None:
+                    opt.step()
+                else:
+                    scaler.step(opt)
 
-        for sch in scheduler["on_step"]:
-            sch.step()
+            net.zero_grad()
+            _ = [crit.zero_grad() for crit, w in criterion]
 
-        if scaler is not None:
-            scaler.update()
+            for sch in scheduler["on_step"]:
+                sch.step()
 
-        meter.update(logs)
-        logging.info(f'Iteration : {i+1}/{len(loader)}')
-        for k, v in logs.items():
-            logging.info(f'Loss: {k}: {v} ')
+            if scaler is not None:
+                scaler.update()
 
-    return meter.avg
+            meter.update(logs)
+            logging.info(f'Iteration : {i+1}/{len(loader)}')
+            for k, v in logs.items():
+                logging.info(f'Loss: {k}: {v} ')
+
+        return meter.avg

@@ -6,11 +6,11 @@
 #SBATCH --cpus-per-task=10           # number of cores per tasks
 #SBATCH --hint=nomultithread         # we get physical cores not logical
 #SBATCH --distribution=block:block   # we pin the tasks on contiguous cores
-#SBATCH --time=25:00:00              # temps d’exécution maximum demande (HH:MM:SS)
-#SBATCH --qos=qos_gpu-t4
+#SBATCH --time=20:00:00              # temps d’exécution maximum demande (HH:MM:SS)
+#SBATCH --qos=qos_gpu-t3
 #SBATCH --output=%A_%a.out # output file name
 #SBATCH --error=%A_%a.err  # error file name
-#SBATCH --array=0-6
+#SBATCH --array=0-3
 
 set -x
 cd $WORK/margin_ap
@@ -22,25 +22,16 @@ export TORCH_HOME=${SCRATCH}/pretrained_models
 
 
 weight0[0]=1.0
-weight1[0]=1.0
+weight1[0]=0.25
 
-weight0[1]=1.8
-weight1[1]=0.2
+weight0[1]=0.25
+weight1[1]=1.0
 
-weight0[2]=0.2
-weight1[2]=1.8
+weight0[2]=1.6
+weight1[2]=0.4
 
-weight0[3]=0.6
-weight1[3]=1.4
-
-weight0[4]=1.4
-weight1[4]=0.6
-
-weight0[5]=1.6
-weight1[5]=0.4
-
-weight0[6]=0.4
-weight1[6]=1.6
+weight0[3]=0.4
+weight1[3]=1.6
 
 
 sleep $(( 60*${SLURM_ARRAY_TASK_ID}))
@@ -54,6 +45,7 @@ experience.num_workers=10 \
 dataset=inaturalist \
 dataset.sampler.kwargs.batch_size=224 \
 optimizer=inaturalist \
+transform=inaturalist \
 loss=marginap_sigmo_abs \
 loss.0.weight=${weight0[${SLURM_ARRAY_TASK_ID}]} \
 loss.1.weight=${weight1[${SLURM_ARRAY_TASK_ID}]} \
