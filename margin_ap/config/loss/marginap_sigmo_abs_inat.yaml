@@ -4,8 +4,9 @@
   kwargs:
     temp: 0.01
     tau: 100.0
-    offset: 1.44
+    offset: 1.0
     margin: 0.05
+    start: 0.0
 
 - name: ContrastiveLoss
   weight: 1.0

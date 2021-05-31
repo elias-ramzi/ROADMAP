@@ -1,16 +1,16 @@
 #!/bin/bash
-#SBATCH --job-name=GRID     # job name
+#SBATCH --job-name=ERR     # job name
 #SBATCH --ntasks=1                   # number of MP tasks
 #SBATCH --ntasks-per-node=1          # number of MPI tasks per node
 #SBATCH --gres=gpu:1                 # number of GPUs per node
 #SBATCH --cpus-per-task=10           # number of cores per tasks
 #SBATCH --hint=nomultithread         # we get physical cores not logical
 #SBATCH --distribution=block:block   # we pin the tasks on contiguous cores
-#SBATCH --time=8:00:00              # temps d’exécution maximum demande (HH:MM:SS)
+#SBATCH --time=13:00:00              # temps d’exécution maximum demande (HH:MM:SS)
 #SBATCH --qos=qos_gpu-t3
-#SBATCH --output=%A_%a.out # output file name
-#SBATCH --error=%A_%a.err  # error file name
-#SBATCH --array=0-11
+#SBATCH --output=%A_%a_err.out # output file name
+#SBATCH --error=%A_%a_err.err  # error file name
+#SBATCH --array=0-15
 
 set -x
 cd $WORK/margin_ap
@@ -21,70 +21,85 @@ module load pytorch-gpu/py3/1.8.0
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
 
-tau[0]=0.01
-rho[0]=0.0
-zeta[0]=0.05
+loss[0]=smoothap
+seed[0]=0
+with_autocast[0]=True
 
-tau[1]=0.01
-rho[1]=0.1
-zeta[1]=0.05
+loss[1]=smoothap
+seed[1]=1
+with_autocast[1]=True
 
-tau[2]=0.01
-rho[2]=2.0
-zeta[2]=0.05
+loss[2]=smoothap
+seed[2]=2
+with_autocast[2]=True
 
-tau[3]=0.01
-rho[3]=5.0
-zeta[3]=0.05
-
-tau[4]=0.01
-rho[4]=10.0
-zeta[4]=0.05
-
-tau[5]=0.01
-rho[5]=100.0
-zeta[5]=0.05
+loss[3]=smoothap
+seed[3]=3
+with_autocast[3]=True
 
 
-tau[6]=0.001
-rho[6]=1.0
-zeta[6]=0.005
+loss[4]=fastap
+seed[4]=0
+with_autocast[4]=True
 
-tau[7]=0.05
-rho[7]=1.0
-zeta[7]=0.1
+loss[5]=fastap
+seed[5]=1
+with_autocast[5]=True
 
-tau[8]=0.1
-rho[8]=1.0
-zeta[8]=0.1
+loss[6]=fastap
+seed[6]=2
+with_autocast[6]=True
 
-tau[9]=1.0
-rho[9]=1.0
-zeta[9]=0.1
+loss[7]=fastap
+seed[7]=3
+with_autocast[7]=True
 
 
+loss[8]=naverap
+seed[8]=0
+with_autocast[8]=True
 
-tau[10]=0.01
-rho[10]=1000.0
-zeta[10]=0.05
+loss[9]=naverap
+seed[9]=1
+with_autocast[9]=True
 
-tau[11]=0.01
-rho[11]=10000.0
-zeta[11]=0.05
+loss[10]=naverap
+seed[10]=2
+with_autocast[10]=True
+
+loss[11]=naverap
+seed[11]=3
+with_autocast[11]=True
+
+
+loss[12]=blackboxap
+seed[12]=0
+with_autocast[12]=False
+
+loss[13]=blackboxap
+seed[13]=1
+with_autocast[13]=False
+
+loss[14]=blackboxap
+seed[14]=2
+with_autocast[14]=False
+
+loss[15]=blackboxap
+seed[15]=3
+with_autocast[15]=False
 
 
 sleep $(( 60*${SLURM_ARRAY_TASK_ID}))
 srun python margin_ap/single_experiment_runner.py \
-'experience.experiment_name=sop_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_tau${loss.0.kwargs.temp}_rho${loss.0.kwargs.tau}' \
+'experience.experiment_name=sop_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_seed${experience.seed}' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Stanford_Online_Products' \
-experience.seed=333 \
-'experience.log_dir=${env:SCRATCH}/experiments/margin_ap_grid' \
+experience.seed=${seed[${SLURM_ARRAY_TASK_ID}]} \
+'experience.log_dir=${env:SCRATCH}/experiments/sop_ranking_compa' \
 experience.max_iter=100 \
 experience.num_workers=10 \
+experience.save_model=25 \
+model.kwargs.with_autocast=${with_autocast[${SLURM_ARRAY_TASK_ID}]} \
+optimizer=sop_small \
 dataset.sampler.kwargs.batch_size=128 \
 dataset.sampler.kwargs.batches_per_super_pair=10 \
-loss=marginap_sigmo \
-optimizer=sop_small \
-loss.0.kwargs.tau=${rho[${SLURM_ARRAY_TASK_ID}]} \
-loss.0.kwargs.temp=${tau[${SLURM_ARRAY_TASK_ID}]} \
-loss.0.kwargs.margin=${zeta[${SLURM_ARRAY_TASK_ID}]}
+loss=${loss[${SLURM_ARRAY_TASK_ID}]}
