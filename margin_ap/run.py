@@ -131,8 +131,8 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
     if state is not None:
         random.setstate(state["RANDOM_STATE"])
         np.random.set_state(state["NP_STATE"])
-        torch.random.set_rng_state((state["TORCH_STATE"]))
-        # torch.cuda.set_rng_state_all((state["TORCH_CUDA_STATE"]))
+        torch.random.set_rng_state(state["TORCH_STATE"])
+        # torch.cuda.set_rng_state_all(state["TORCH_CUDA_STATE"])
 
     return eng.train(
         config=config,
