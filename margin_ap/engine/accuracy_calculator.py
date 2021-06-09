@@ -85,6 +85,7 @@ class CustomCalculator(AccuracyCalculator):
                 label_counts[1], len(reference), embeddings_come_from_same_source
             )
 
+            # USE OUR OWN KNN SEARCH
             knn_indices, knn_distances = get_knn(
                 reference, query, num_k, embeddings_come_from_same_source
             )

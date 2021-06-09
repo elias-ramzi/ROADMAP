@@ -78,10 +78,10 @@ def train(
 
         metrics = None
         if dataset_dict:
-            # RANDOM_STATE = random.getstate()
-            # NP_STATE = np.random.get_state()
-            # TORCH_STATE = torch.random.get_rng_state()
-            # TORCH_CUDA_STATE = torch.cuda.get_rng_state_all()
+            RANDOM_STATE = random.getstate()
+            NP_STATE = np.random.get_state()
+            TORCH_STATE = torch.random.get_rng_state()
+            TORCH_CUDA_STATE = torch.cuda.get_rng_state_all()
 
             logging.info(f"Evaluation : @epoch #{e} for model {config.experience.experiment_name}")
             torch.cuda.empty_cache()
@@ -94,10 +94,10 @@ def train(
             )
             torch.cuda.empty_cache()
 
-            # random.setstate(RANDOM_STATE)
-            # np.random.set_state(NP_STATE)
-            # torch.random.set_rng_state(TORCH_STATE)
-            # torch.cuda.set_rng_state_all(TORCH_CUDA_STATE)
+            random.setstate(RANDOM_STATE)
+            np.random.set_state(NP_STATE)
+            torch.random.set_rng_state(TORCH_STATE)
+            torch.cuda.set_rng_state_all(TORCH_CUDA_STATE)
 
         # """""""""""""""""" Evaluate Model """"""""""""""""""""""""""
         score = None

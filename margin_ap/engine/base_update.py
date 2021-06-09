@@ -1,7 +1,9 @@
+import os
 import logging
 
 import torch
 import numpy as np
+from tqdm import tqdm
 
 import margin_ap.utils as lib
 
@@ -101,7 +103,8 @@ def base_update(
     net.train()
     net.zero_grad()
 
-    for i, batch in enumerate(loader):
+    iterator = tqdm(loader, disable=os.getenv('TQDM_DISABLE'))
+    for i, batch in enumerate(iterator):
         logs = _batch_optimization(
             config,
             net,
@@ -136,10 +139,13 @@ def base_update(
             scaler.update()
 
         meter.update(logs)
-        if (i + 1) % 50 == 0:
-            logging.info(f'Iteration : {i}/{len(loader)}')
-            for k, v in logs.items():
-                logging.info(f'Loss: {k}: {v} ')
+        if not os.getenv('TQDM_DISABLE'):
+            iterator.set_postfix(meter.avg)
+        else:
+            if (i + 1) % 50 == 0:
+                logging.info(f'Iteration : {i}/{len(loader)}')
+                for k, v in logs.items():
+                    logging.info(f'Loss: {k}: {v} ')
 
     for crit, _ in criterion:
         if hasattr(crit, 'step'):

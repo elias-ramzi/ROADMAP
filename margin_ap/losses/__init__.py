@@ -3,7 +3,7 @@ from .contrastive_loss import ContrastiveLoss
 from .entropy_regularization import EntropyRegularization
 from .fast_ap import FastAP
 from .hinge_ap import HingeAP
-from .naver_ap import NaverAP
+from .softbin_ap import SoftBinAP
 from .pair_loss import PairLoss
 from .smooth_rank_ap import (
     HeavisideAP,
@@ -23,7 +23,7 @@ __all__ = [
     'EntropyRegularization',
     'FastAP',
     'HingeAP',
-    'NaverAP',
+    'SoftBinAP',
     'PairLoss',
     'HeavisideAP',
     'AffineAP',

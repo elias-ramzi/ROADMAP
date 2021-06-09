@@ -13,6 +13,7 @@ parser.add_argument("--config", type=str, required=True)
 parser.add_argument("--set", type=str, default='test')
 parser.add_argument("--bs", type=str, default=128)
 parser.add_argument("--nw", type=str, default=10)
+parser.add_argument("--data_dir", type=str, default=None)
 args = parser.parse_args()
 
 logging.basicConfig(
@@ -34,7 +35,14 @@ net.cuda()
 # cfg.dataset.kwargs.data_dir = fix_path(cfg.dataset.kwargs.data_dir)
 
 transform = Getter().get_transform(cfg.transform.test)
-dts = Getter().get_dataset(transform, args.set, cfg.dataset)
+try:
+    dts = Getter().get_dataset(transform, args.set, cfg.dataset)
+except FileNotFoundError as exc:
+    if args.data_dir is not None:
+        cfg.dataset.kwargs.data_dir = lib.expand_path(args.data_dir)
+        dts = Getter().get_dataset(transform, args.set, cfg.dataset)
+    else:
+        raise exc
 logging.info("Dataset created...")
 
 metrics = eng.evaluate(
@@ -46,9 +54,7 @@ metrics = eng.evaluate(
 )
 
 
-import ipdb; ipdb.set_trace()
 logging.info("Evaluation completed...")
-
 for split, mtrc in metrics.items():
     for k, v in mtrc.items():
         if k == 'epoch':

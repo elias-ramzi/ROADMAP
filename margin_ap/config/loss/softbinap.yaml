@@ -1,5 +1,5 @@
 # @package _group_
-- name: NaverAP
+- name: SoftBinAP
   weight: 1.0
   kwargs:
     nq: 20
