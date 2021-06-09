@@ -1,5 +1,5 @@
 from .blackbox_ap import BlackBoxAP
-from .contrastive_loss import ContrastiveLoss
+from .calibration_loss import CalibrationLoss
 from .entropy_regularization import EntropyRegularization
 from .fast_ap import FastAP
 from .hinge_ap import HingeAP
@@ -16,7 +16,7 @@ from .triplet_loss import TripletLoss
 
 __all__ = [
     'BlackBoxAP',
-    'ContrastiveLoss',
+    'CalibrationLoss',
     'EntropyRegularization',
     'FastAP',
     'HingeAP',

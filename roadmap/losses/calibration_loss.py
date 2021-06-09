@@ -4,7 +4,7 @@ from pytorch_metric_learning.utils import common_functions as c_f
 from pytorch_metric_learning.utils import loss_and_miner_utils as lmu
 
 
-class ContrastiveLoss(losses.ContrastiveLoss):
+class CalibrationLoss(losses.ContrastiveLoss):
     takes_embeddings = True
 
     def get_default_distance(self):

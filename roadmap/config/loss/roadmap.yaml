@@ -7,7 +7,7 @@
     offset: 1.44
     margin: 0.05
 
-- name: ContrastiveLoss
+- name: CalibrationLoss
   weight: 1.0
   kwargs:
     pos_margin: 0.9
