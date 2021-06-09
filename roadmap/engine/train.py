@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader
 from ray import tune
 
-import margin_ap.utils as lib
+import roadmap.utils as lib
 
 from .update import update
 from .evaluate import evaluate

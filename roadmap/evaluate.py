@@ -3,9 +3,9 @@ import argparse
 
 import torch
 
-from margin_ap.getter import Getter
-import margin_ap.utils as lib
-import margin_ap.engine as eng
+from roadmap.getter import Getter
+import roadmap.utils as lib
+import roadmap.engine as eng
 
 
 parser = argparse.ArgumentParser()
@@ -31,8 +31,6 @@ net.load_state_dict(state["net_state"])
 if torch.cuda.device_count() > 1:
     net = torch.nn.DataParallel(net)
 net.cuda()
-
-# cfg.dataset.kwargs.data_dir = fix_path(cfg.dataset.kwargs.data_dir)
 
 transform = Getter().get_transform(cfg.transform.test)
 try:

@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from tqdm.auto import tqdm
 
-import margin_ap.utils as lib
+import roadmap.utils as lib
 
 
 def tau_sigmoid(tensor, temp):
@@ -239,34 +239,6 @@ class SmoothAP(SmoothRankAP):
         return repr
 
 
-class StepSmoothAP(SmoothRankAP):
-
-    def __init__(self, temp=0.01, ponder=None, **kwargs):
-        rank_approximation = partial(step_smoothap, temp=temp, ponder=ponder)
-        kwargs["rank_approximation_supervised"] = True
-        super().__init__(rank_approximation, **kwargs)
-        self.temp = temp
-
-    def extra_repr(self,):
-        repr = f"temp={self.temp}, {self.my_repr}"
-        return repr
-
-
-class NoSaturationSmoothAP(SmoothRankAP):
-
-    def __init__(self, temp=0.01, tau=1.0, offset=1.0, **kwargs):
-        rank_approximation = partial(no_saturarion_smoothap, temp=temp, tau=tau, offset=offset)
-        kwargs["rank_approximation_supervised"] = True
-        super().__init__(rank_approximation, **kwargs)
-        self.temp = temp
-        self.tau = tau
-        self.offset = offset
-
-    def extra_repr(self,):
-        repr = f"temp={self.temp}, tau={self.tau}, offset={self.offset}, {self.my_repr}"
-        return repr
-
-
 class AffineAP(SmoothRankAP):
 
     def __init__(self, theta, mu_n, mu_p, **kwargs):
@@ -281,7 +253,7 @@ class AffineAP(SmoothRankAP):
         return repr
 
 
-class MarginAP(SmoothRankAP):
+class SupAP(SmoothRankAP):
 
     def __init__(self, temp, tau, offset, margin=None, start=0.5, **kwargs):
         rank_approximation = partial(step_rank, temp=temp, tau=tau, offset=offset, margin=margin, start=start)
@@ -294,54 +266,4 @@ class MarginAP(SmoothRankAP):
 
     def extra_repr(self,):
         repr = f"temp={self.temp}, tau={self.tau}, offset={self.offset}, margin={self.margin}, {self.my_repr}"
-        return repr
-
-
-class ScheduledSlopeAP(SmoothRankAP):
-
-    def __init__(self, mu_n_range, mu_p_range, num_steps, scheduled_type='linear', **kwargs):
-        super().__init__(self.scheduled_slope, **kwargs)
-        self.scheduled_type = scheduled_type
-        self.time = nn.Parameter(torch.tensor(0), requires_grad=False)
-        self.num_steps = nn.Parameter(torch.tensor(num_steps), requires_grad=False)
-
-        if isinstance(mu_n_range, float):
-            mu_n_range = [mu_n_range]
-        if isinstance(mu_p_range, float):
-            mu_p_range = [mu_p_range]
-
-        if scheduled_type == 'linear':
-            self.mu_n_range = nn.Parameter(torch.linspace(mu_n_range[0], mu_n_range[-1], num_steps), requires_grad=False)
-            self.mu_p_range = nn.Parameter(torch.linspace(mu_p_range[0], mu_p_range[-1], num_steps), requires_grad=False)
-        elif scheduled_type == 'step':
-            self.mu_n_range = nn.Parameter(self.get_steps(mu_n_range), requires_grad=False)
-            self.mu_p_range = nn.Parameter(self.get_steps(mu_p_range), requires_grad=False)
-
-    def get_steps(self, mu_range):
-        mu = [0] * self.num_steps
-        all_steps = sorted(mu_range.keys(), reverse=True)
-        for step in all_steps:
-            for i in range(len(mu)):
-                if i < step:
-                    mu[i] = mu_range[step]
-        return torch.tensor(mu)
-
-    def scheduled_slope(self, tens):
-        return piecewise_affine(
-            tens,
-            0.5,
-            self.mu_n_range[min(self.time, self.num_steps - 1)],
-            self.mu_p_range[min(self.time, self.num_steps - 1)],
-        )
-
-    def step(self,):
-        self.time += 1
-
-    def extra_repr(self,):
-        repr = f"\tmu_n_range={self.mu_n_range},"
-        repr += f"\n\tmu_p_range={self.mu_p_range},"
-        repr += f"\n\tnum_steps={self.num_steps},"
-        repr += f"\n\tscheduled_type={self.scheduled_type},"
-        repr += f"\n\ttime={self.time},"
-        repr += f"\n\t{self.my_repr}"
         return repr

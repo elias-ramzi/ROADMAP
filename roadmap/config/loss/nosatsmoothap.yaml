@@ -1,7 +1,0 @@
-# @package _group_
-- name: NoSaturationSmoothAP
-  weight: 1.0
-  kwargs:
-    temp: 0.01
-    tau: 1.0
-    offset: 1.0

@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torchvision.models as models
 import timm
 
-import margin_ap.utils as lib
+import roadmap.utils as lib
 
 
 def get_backbone(name):

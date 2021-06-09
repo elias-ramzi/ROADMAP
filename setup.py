@@ -4,10 +4,10 @@ with open('requirements.txt') as open_file:
     install_requires = open_file.read()
 
 setuptools.setup(
-    name='marginap',
-    version='',
+    name='roadmap',
+    version='0.0.0',
     packages=[''],
-    url='https://github.com/elias-ramzi/margin_ap',
+    url='https://github.com/elias-ramzi/ROADMAP',
     license='',
     author='Elias Ramzi',
     author_email='elias.ramzi@lecnam.net',

@@ -1,12 +1,12 @@
 defaults:
 
-    - experience: cnam
+    - experience: default
 
-    - grid_search: smoothap
+    - grid_search: default
 
     - dataset: sop
 
-    - loss: smoothap
+    - loss: roadmap
 
     - memory: default
 

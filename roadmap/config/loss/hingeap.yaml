@@ -1,4 +1,0 @@
-# @package _group_
-- name: HingeAP
-  weight: 1.0
-  kwargs: {}

@@ -1,8 +1,0 @@
-# @package _group_
-- name: MarginAP
-  weight: 1.0
-  kwargs:
-    temp: 0.01
-    tau: 100.0
-    offset: 1.44
-    margin: 0.05

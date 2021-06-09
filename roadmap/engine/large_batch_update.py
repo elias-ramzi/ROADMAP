@@ -3,7 +3,7 @@ import logging
 import torch
 from torch.utils.data import DataLoader, Subset
 
-import margin_ap.utils as lib
+import roadmap.utils as lib
 
 
 def _compute_descriptors(net, loader,):

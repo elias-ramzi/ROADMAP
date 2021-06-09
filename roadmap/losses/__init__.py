@@ -8,11 +8,8 @@ from .pair_loss import PairLoss
 from .smooth_rank_ap import (
     HeavisideAP,
     SmoothAP,
-    MarginAP,
+    SupAP,
     AffineAP,
-    StepSmoothAP,
-    NoSaturationSmoothAP,
-    ScheduledSlopeAP
 )
 from .triplet_loss import TripletLoss
 
@@ -28,9 +25,6 @@ __all__ = [
     'HeavisideAP',
     'AffineAP',
     'SmoothAP',
-    'StepSmoothAP',
-    'NoSaturationSmoothAP',
-    'MarginAP',
-    'ScheduledSlopeAP',
+    'SupAP',
     'TripletLoss',
 ]
