@@ -84,6 +84,8 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
     scaler = None
     if config.model.kwargs.with_autocast:
         scaler = torch.cuda.amp.GradScaler()
+        if checkpoint_dir:
+            scaler.load_state_dict(state['scaler_state'])
 
     if checkpoint_dir:
         net.load_state_dict(state['net_state'])

@@ -113,22 +113,6 @@ def train(
             for sch, key in scheduler["on_val"]:
                 sch.step(metrics[config.experience.eval_split][key])
 
-        # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
-        checkpoint(
-            log_dir=log_dir,
-            save_checkpoint=(e % config.experience.save_model == 0),
-            net=net,
-            optimizer=optimizer,
-            scheduler=scheduler,
-            scaler=scaler,
-            epoch=e,
-            seed=config.experience.seed,
-            args=config,
-            score=score,
-            best_model=best_model,
-            best_score=best_score,
-        )
-
         # """""""""""""""""" Logging Step """"""""""""""""""""""""""
         for grp, opt in optimizer.items():
             writer.add_scalar(f"LR/{grp}", list(lib.get_lr(opt).values())[0], e)
@@ -158,5 +142,21 @@ def train(
 
         print()
         print()
+
+        # """""""""""""""""" Checkpointing """"""""""""""""""""""""""
+        checkpoint(
+            log_dir=log_dir,
+            save_checkpoint=(e % config.experience.save_model == 0),
+            net=net,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            scaler=scaler,
+            epoch=e,
+            seed=config.experience.seed,
+            args=config,
+            score=score,
+            best_model=best_model,
+            best_score=best_score,
+        )
 
     return metrics
