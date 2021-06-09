@@ -2,5 +2,7 @@
 - name: MarginAP
   weight: 1.0
   kwargs:
-    mu: 0.025
-    tau: 1.
+    temp: 0.01
+    tau: 1.0
+    offset: 1.0
+    margin: null

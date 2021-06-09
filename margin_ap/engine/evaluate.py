@@ -1,8 +1,10 @@
+import os
 import logging
 
 import torch
 from pytorch_metric_learning import testers
 import pytorch_metric_learning.utils.common_functions as c_f
+from tqdm import tqdm
 
 from .accuracy_calculator import get_accuracy_calculator
 
@@ -13,7 +15,7 @@ class GlobalEmbeddingSpaceTester(testers.GlobalEmbeddingSpaceTester):
         s, e = 0, 0
         with torch.no_grad():
             logging.info("Computing embeddings")
-            for i, data in enumerate(dataloader):
+            for i, data in enumerate(tqdm(dataloader, disable=os.getenv('TQDM_DISABLE'))):
                 img, label = self.data_and_label_getter(data)
                 label = c_f.process_label(label, "all", self.label_mapper)
                 q = self.get_embeddings_for_eval(trunk_model, embedder_model, img)

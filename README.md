@@ -4,7 +4,7 @@
 
  ## SOP
 
- srun python margin_ap/single_experiment_runner.py \
+python margin_ap/single_experiment_runner.py \
  'experience.experiment_name=sop_${loss.0.name}_${dataset.sampler.kwargs.batch_size}_schedule' \
  'dataset.kwargs.data_dir=${env:SCRATCH}/Stanford_Online_Products' \
  experience.seed=333 \

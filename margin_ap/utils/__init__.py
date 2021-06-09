@@ -14,6 +14,7 @@ from .override_config import override_config
 from .rgb_to_bgr import RGBToBGR
 from .set_initial_lr import set_initial_lr
 from .set_lr import set_lr
+from .str_to_bool import str_to_bool
 
 
 __all__ = [
@@ -33,4 +34,5 @@ __all__ = [
     'RGBToBGR',
     'set_initial_lr',
     'set_lr',
+    'str_to_bool',
 ]

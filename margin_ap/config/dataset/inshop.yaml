@@ -8,6 +8,6 @@ sampler:
   name: HierarchicalSampler
   kwargs:
     batch_size: 128
-    samples_per_class: 4
-    batches_per_super_pair: 3
+    samples_per_class: 8
+    batches_per_super_pair: 4
     nb_categories: 2

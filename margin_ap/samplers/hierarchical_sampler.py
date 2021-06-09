@@ -28,21 +28,21 @@ class HierarchicalSampler(BatchSampler):
         inner_label: columns index corresponding to classes
         outer_label: columns index corresponding to the level of hierarchy for the pairs
         """
-        self.batch_size = batch_size
-        self.batches_per_super_pair = batches_per_super_pair
-        self.samples_per_class = samples_per_class
-        self.nb_categories = nb_categories
+        self.batch_size = int(batch_size)
+        self.batches_per_super_pair = int(batches_per_super_pair)
+        self.samples_per_class = int(samples_per_class)
+        self.nb_categories = int(nb_categories)
 
         # checks
-        assert self.batch_size % nb_categories == 0, f"batch_size should be a multiple of {nb_categories}"
-        self.sub_batch_len = self.batch_size // nb_categories
+        assert self.batch_size % self.nb_categories == 0, f"batch_size should be a multiple of {self.nb_categories}"
+        self.sub_batch_len = self.batch_size // self.nb_categories
         if self.samples_per_class > 0:
             assert self.sub_batch_len % self.samples_per_class == 0, "batch_size not a multiple of samples_per_class"
         else:
             self.samples_per_class = None
 
         self.super_image_lists = dataset.super_dict.copy()
-        self.super_pairs = list(itertools.combinations(set(dataset.super_labels), nb_categories))
+        self.super_pairs = list(itertools.combinations(set(dataset.super_labels), self.nb_categories))
         self.reshuffle()
 
     def __iter__(self,):

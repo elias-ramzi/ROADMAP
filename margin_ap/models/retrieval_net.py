@@ -6,6 +6,8 @@ import torch.nn.functional as F
 import torchvision.models as models
 import timm
 
+import margin_ap.utils as lib
+
 
 def get_backbone(name):
     if name == 'resnet18':
@@ -92,8 +94,14 @@ class RetrievalNet(nn.Module):
         pooling='default',
     ):
         super().__init__()
+
+        norm_features = lib.str_to_bool(norm_features)
+        without_fc = lib.str_to_bool(without_fc)
+        with_autocast = lib.str_to_bool(with_autocast)
+
         assert isinstance(without_fc, bool)
         assert isinstance(norm_features, bool)
+        assert isinstance(with_autocast, bool)
         self.norm_features = norm_features
         self.without_fc = without_fc
         self.with_autocast = with_autocast

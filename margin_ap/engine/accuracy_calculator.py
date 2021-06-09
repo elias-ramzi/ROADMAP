@@ -52,6 +52,7 @@ class CustomCalculator(AccuracyCalculator):
         embeddings_come_from_same_source,
         include=(),
         exclude=(),
+        return_indices=False,
     ):
         [query, reference, query_labels, reference_labels] = [
             c_f.numpy_to_torch(x)
@@ -84,6 +85,7 @@ class CustomCalculator(AccuracyCalculator):
                 label_counts[1], len(reference), embeddings_come_from_same_source
             )
 
+            # USE OUR OWN KNN SEARCH
             knn_indices, knn_distances = get_knn(
                 reference, query, num_k, embeddings_come_from_same_source
             )
@@ -101,12 +103,14 @@ class CustomCalculator(AccuracyCalculator):
         if any(x in self.requires_clustering() for x in self.get_curr_metrics()):
             kwargs["cluster_labels"] = self.get_cluster_labels(**kwargs)
 
+        if return_indices:
+            return knn_indices, self._get_accuracy(self.curr_function_dict, **kwargs)
         return self._get_accuracy(self.curr_function_dict, **kwargs)
 
 
-def get_accuracy_calculator(exclude_ranks=None):
+def get_accuracy_calculator(exclude_ranks=None, k=2047):
     exclude = ['NMI', 'AMI']
     if exclude_ranks:
         for r in exclude_ranks:
             exclude.append(f'recall_at_{r}')
-    return CustomCalculator(exclude=exclude, k=2047)
+    return CustomCalculator(exclude=exclude, k=k)

@@ -28,11 +28,8 @@ srun python margin_ap/single_experiment_runner.py \
 'experience.experiment_name=sop_${loss.0.name}_${loss.1.name}_${dataset.sampler.kwargs.batch_size}_deit' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Stanford_Online_Products' \
 experience.seed=333 \
-'experience.log_dir=${env:SCRATCH}/experiments/sop' \
+'experience.log_dir=${env:SCRATCH}/experiments/sop_contr' \
 experience.max_iter=25 \
 experience.num_workers=10 \
 dataset.sampler.kwargs.batch_size=128 \
-loss=${loss[${SLURM_ARRAY_TASK_ID}]} \
-loss.1.weight=1.0 \
-model=deit \
-optimizer=sop_adamw
+loss=contrastive

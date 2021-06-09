@@ -1,0 +1,5 @@
+# @package _group_
+- name: StepSmoothAP
+  weight: 1.0
+  kwargs:
+    temp: 0.01

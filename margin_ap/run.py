@@ -115,15 +115,6 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
         memory = getter.get_memory(config.memory)
         memory.cuda()
 
-    # """""""""""""""""" Handle Apex """"""""""""""""""""""""""
-    if config.experience.apex:
-        from apex import amp
-        to_init = [net]
-        to_init.extend(criterion)
-        to_init, optimizer = amp.initialize(to_init, optimizer, opt_level='O1')
-        net = to_init[0]
-        criterion = to_init[1:]
-
     # """""""""""""""""" Handle Cuda """"""""""""""""""""""""""
     if torch.cuda.device_count() > 1:
         logging.info("Model is parallelized")
@@ -135,6 +126,13 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
 
     net.cuda()
     _ = [crit.cuda() for crit, _ in criterion]
+
+    # """""""""""""""""" Handle RANDOM_STATE """"""""""""""""""""""""""
+    if state is not None:
+        random.setstate(state["RANDOM_STATE"])
+        np.random.set_state(state["NP_STATE"])
+        torch.random.set_rng_state(state["TORCH_STATE"])
+        torch.cuda.set_rng_state_all(state["TORCH_CUDA_STATE"])
 
     return eng.train(
         config=config,

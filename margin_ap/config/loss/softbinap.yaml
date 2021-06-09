@@ -1,0 +1,7 @@
+# @package _group_
+- name: SoftBinAP
+  weight: 1.0
+  kwargs:
+    nq: 20
+    min: -1
+    max: 1

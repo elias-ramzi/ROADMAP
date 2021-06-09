@@ -9,9 +9,9 @@
 #SBATCH --distribution=block:block   # we pin the tasks on contiguous cores
 #SBATCH --time=20:00:00              # temps d’exécution maximum demande (HH:MM:SS)
 #SBATCH --qos=qos_gpu-t3
-#SBATCH --output=TRSOP%A_%a.out # output file name
-#SBATCH --error=TRSOP%A_%a.err  # error file name
-#SBATCH --array=0-4
+#SBATCH --output=%A_%a.out # output file name
+#SBATCH --error=%A_%a.err  # error file name
+#SBATCH --array=0-1
 
 set -x
 cd $WORK/margin_ap
@@ -21,38 +21,23 @@ module load pytorch-gpu/py3/1.8.0
 
 export TORCH_HOME=${SCRATCH}/pretrained_models
 
-loss[0]="smoothap_abs"
-loss[1]="smoothap_abs"
-loss[2]="smoothap_abs"
-loss[3]="smoothap_abs"
-loss[4]="smoothap_abs"
 
-batch_size[0]="32"
-batch_size[1]="64"
-batch_size[2]="128"
-batch_size[3]="224"
-batch_size[4]="384"
+batch_size[0]=224
+batches_per_super_pair[0]=8
 
-batches_per_super_pair[0]=40
-batches_per_super_pair[1]=20
-batches_per_super_pair[2]=10
-batches_per_super_pair[3]=6
-batches_per_super_pair[4]=4
+batch_size[1]=384
+batches_per_super_pair[1]=8
 
 
 srun python margin_ap/single_experiment_runner.py \
 'experience.experiment_name=sop_${loss.0.name}_${loss.1.name}_${dataset.sampler.kwargs.batch_size}_deit' \
 'dataset.kwargs.data_dir=${env:SCRATCH}/Stanford_Online_Products' \
 experience.seed=333 \
-'experience.log_dir=${env:SCRATCH}/experiments/sop_deit_baseline_middle' \
-experience.max_iter=50 \
+'experience.log_dir=${env:SCRATCH}/experiments/sop_marginap_sigmo_deit' \
+experience.max_iter=100 \
 experience.num_workers=10 \
 model=deit \
 optimizer=sop_deit \
-optimizer.0.kwargs.lr=0.00001 \
-optimizer.0.name=AdamW \
 dataset.sampler.kwargs.batch_size=${batch_size[${SLURM_ARRAY_TASK_ID}]} \
 dataset.sampler.kwargs.batches_per_super_pair=${batches_per_super_pair[${SLURM_ARRAY_TASK_ID}]} \
-loss=${loss[${SLURM_ARRAY_TASK_ID}]} \
-loss.1.kwargs.pos_margin=0.9 \
-loss.1.kwargs.neg_margin=0.6
+loss=marginap_sigmo_abs
