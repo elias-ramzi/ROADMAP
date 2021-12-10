@@ -1,0 +1,5 @@
+# @package _group_
+- name: PairLoss
+  weight: 1.0
+  kwargs:
+    margin: 0.5

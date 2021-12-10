@@ -1,0 +1,10 @@
+# @package _group_
+name: RetrievalNet
+freeze_batch_norm: False
+freeze_pos_embedding: False
+kwargs:
+  backbone_name: vit_deit_distilled
+  embed_dim: 384
+  norm_features: False
+  without_fc: True
+  with_autocast: True

@@ -1,0 +1,5 @@
+# @package _group_
+- name: SmoothAP
+  weight: 1.0
+  kwargs:
+    tau: 0.01

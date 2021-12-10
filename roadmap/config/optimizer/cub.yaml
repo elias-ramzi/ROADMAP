@@ -1,0 +1,9 @@
+# @package _group_
+- name: Adam
+  params:
+  kwargs:
+    lr: 0.000001
+    weight_decay: 0.0004
+  scheduler_on_epoch:
+  scheduler_on_step:
+  scheduler_on_val:

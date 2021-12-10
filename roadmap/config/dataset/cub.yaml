@@ -1,0 +1,10 @@
+# @package _group_
+name: Cub200Dataset
+kwargs:
+  data_dir: /local/DEEPLEARNING/image_retrieval/CUB_200_2011
+
+sampler:
+  name: MPerClassSampler
+  kwargs:
+    batch_size: 128
+    samples_per_class: 4

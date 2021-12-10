@@ -1,0 +1,11 @@
+# @package _group_
+name: RetrievalNet
+freeze_batch_norm: True
+freeze_pos_embedding: False
+kwargs:
+  backbone_name: resnet50
+  embed_dim: 512
+  norm_features: True
+  without_fc: False
+  with_autocast: True
+  pooling: max

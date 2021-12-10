@@ -1,0 +1,8 @@
+# @package _group_
+- name: SupAP
+  weight: 1.0
+  kwargs:
+    tau: 0.01
+    rho: 100.0
+    offset: 1.44
+    delta: 0.05

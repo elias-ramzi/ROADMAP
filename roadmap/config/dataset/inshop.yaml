@@ -1,0 +1,13 @@
+# @package _group_
+name: InShopDataset
+kwargs:
+  data_dir: /local/DEEPLEARNING/image_retrieval/inshop
+  hierarchy_mode: 'all'
+
+sampler:
+  name: HierarchicalSampler
+  kwargs:
+    batch_size: 128
+    samples_per_class: 8
+    batches_per_super_pair: 4
+    nb_categories: 2

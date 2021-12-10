@@ -1,0 +1,5 @@
+# @package _group_
+- name: FastAP
+  weight: 1.0
+  kwargs:
+    num_bins: 10

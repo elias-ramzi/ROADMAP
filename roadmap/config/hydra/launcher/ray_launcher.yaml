@@ -1,0 +1,10 @@
+# @package hydra.launcher
+_target_: hydra_plugins.hydra_ray_launcher.ray_launcher.RayLauncher
+ray:
+  init:
+    address: null
+    _temp_dir: ${env:HOME}/experiments/tmp
+
+  remote:
+    num_gpus: 1
+    num_cpus: 16

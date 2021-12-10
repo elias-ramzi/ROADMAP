@@ -1,0 +1,7 @@
+# @package _group_
+- name:  AffineAP
+  weight: 1.0
+  kwargs:
+    theta: 0.5
+    mu_n: 0.025
+    mu_p: 0.025

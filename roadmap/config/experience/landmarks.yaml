@@ -1,0 +1,34 @@
+# @package _group_
+experiment_name: ???
+log_dir: /share/DEEPLEARNING/datasets/image_retrieval/experiments/
+seed: ???
+resume: null
+maybe_resume: False
+force_lr: null
+
+warm_up: -1
+warm_up_key: fc
+
+max_iter: 50
+
+train_eval_freq: -1
+val_eval_freq: -1
+test_eval_freq: 5
+eval_bs: 96
+save_model: 50
+eval_split: rparis6k
+principal_metric: mapH
+log_grad: False
+with_AP: False
+landmarks: True
+
+split: null
+kfold: null
+split_random_state: null
+with_super_labels: False
+
+num_workers: 16
+pin_memory: True
+
+sub_batch: 128
+update_type: base_update

@@ -1,0 +1,8 @@
+# @package _group_
+name: XBM
+
+activate_after: -1
+weight: 1.0
+kwargs:
+  size: 5824
+  unique: True

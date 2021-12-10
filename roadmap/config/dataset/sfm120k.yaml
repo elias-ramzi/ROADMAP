@@ -1,0 +1,19 @@
+# @package _group_
+name: SfM120kDataset
+kwargs:
+  data_dir: /local/DEEPLEARNING/image_retrieval/landmarks/sfm120k
+
+sampler:
+  name: MPerClassSampler
+  kwargs:
+    batch_size: 128
+    samples_per_class: 4
+
+evaluation:
+  - name: RevisitedDataset
+    kwargs:
+      data_dir: /local/DEEPLEARNING/image_retrieval/landmarks/rparis6k
+
+  - name: RevisitedDataset
+    kwargs:
+      data_dir: /local/DEEPLEARNING/image_retrieval/landmarks/roxford5k

@@ -1,0 +1,16 @@
+.venv
+__pycache__
+.ipynb_checkpoints
+.pytest_cache
+
+build/
+dist/
+*.egg-info
+*.so
+*.c
+
+tmp
+personal_experiment
+.idea
+outputs
+scripts

@@ -1,0 +1,11 @@
+# @package _group_
+name: SOPDataset
+kwargs:
+  data_dir: /local/DEEPLEARNING/image_retrieval/Stanford_Online_Products
+
+sampler:
+  name: HierarchicalSampler
+  kwargs:
+    batch_size: 128
+    samples_per_class: 4
+    batches_per_super_pair: 10

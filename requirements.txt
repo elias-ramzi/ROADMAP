@@ -1,0 +1,17 @@
+numpy
+torch==1.8.1
+torchvision==0.9.1
+faiss-gpu==1.6.5
+pillow
+pandas
+tqdm
+tensorboard
+matplotlib
+pytorch-metric-learning
+timm
+ray[tune]
+ray[default]
+hydra-core==1.0.6
+hydra_colorlog==1.0.1
+hydra-ax-sweeper==1.1.0
+hydra-ray-launcher==0.1.4
