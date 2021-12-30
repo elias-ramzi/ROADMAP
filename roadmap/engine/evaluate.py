@@ -58,18 +58,13 @@ def get_tester(
     batch_size=64,
     num_workers=16,
     pca=None,
-    label_hierarchy_level=0,
     exclude_ranks=None,
     k=2047,
-    multi_level_labels=False,
-    label_comparison_fn=None,
     **kwargs,
 ):
     calculator = get_accuracy_calculator(
         exclude_ranks=exclude_ranks,
         k=k,
-        multi_level_labels=multi_level_labels,
-        label_comparison_fn=label_comparison_fn,
         **kwargs,
     )
 
@@ -81,7 +76,6 @@ def get_tester(
         accuracy_calculator=calculator,
         data_device=None,
         pca=pca,
-        label_hierarchy_level=label_hierarchy_level,
     )
 
 
