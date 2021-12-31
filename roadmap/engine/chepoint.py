@@ -1,7 +1,6 @@
 from os.path import join
 
 import torch
-from ray import tune
 
 import roadmap.utils as lib
 
@@ -46,6 +45,7 @@ def checkpoint(
     state_dict.update(RANDOM_STATE)
 
     if log_dir is None:
+        from ray import tune
         torch.save(state_dict, join(tune.get_trial_dir(), "rolling.ckpt"))
         if save_checkpoint:
             with tune.checkpoint_dir(step=epoch) as checkpoint_dir:

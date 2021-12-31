@@ -7,7 +7,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
-from ray import tune
 
 import roadmap.utils as lib
 import roadmap.engine as eng
@@ -48,6 +47,7 @@ def run(config, base_config=None, checkpoint_dir=None, splits=None):
         restore_epoch = state['epoch']
 
     if log_dir is None:
+        from ray import tune
         writer = SummaryWriter(join(tune.get_trial_dir(), "logs"), purge_step=restore_epoch)
     else:
         writer = SummaryWriter(join(log_dir, "logs"), purge_step=restore_epoch)

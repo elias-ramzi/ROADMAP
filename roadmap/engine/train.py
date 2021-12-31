@@ -4,7 +4,6 @@ from time import time
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from ray import tune
 
 import roadmap.utils as lib
 from .base_update import base_update
@@ -116,6 +115,7 @@ def train(
                 best_score = score
 
             if log_dir is None:
+                from ray import tune
                 tune.report(**metrics[config.experience.eval_split])
 
             for sch, key in scheduler["on_val"]:
