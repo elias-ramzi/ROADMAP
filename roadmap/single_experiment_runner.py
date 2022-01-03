@@ -1,6 +1,5 @@
 import os
 
-import ray
 import hydra
 import torch
 
@@ -16,17 +15,14 @@ def single_experiment_runner(cfg):
     """
 
     try:
-        ray.cluster_resources()
-        lib.LOGGER.info("Experiment running with ray : deactivating TQDM")
-        os.environ['TQDM_DISABLE'] = "1"
+        try:
+            import ray
+            ray.cluster_resources()
+            lib.LOGGER.info("Experiment running with ray : deactivating TQDM")
+            os.environ['TQDM_DISABLE'] = "1"
+        except Exception:
+            pass
     except ray.exceptions.RaySystemError:
-        pass
-
-    try:
-        if cfg.loss[0].kwargs.pos_margin < cfg.loss[0].kwargs.neg_margin:
-            lib.LOGGER.warning("Margin is negative")
-            return
-    except Exception:
         pass
 
     cfg.experience.log_dir = lib.expand_path(cfg.experience.log_dir)
