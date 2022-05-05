@@ -12,6 +12,9 @@ source .venv/bin/activate
 pip install -e .
 ```
 
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/robust-and-decomposable-average-precision-for/image-retrieval-on-inaturalist)](https://paperswithcode.com/sota/image-retrieval-on-inaturalist?p=robust-and-decomposable-average-precision-for)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/robust-and-decomposable-average-precision-for/image-retrieval-on-sop)](https://paperswithcode.com/sota/image-retrieval-on-sop?p=robust-and-decomposable-average-precision-for)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/robust-and-decomposable-average-precision-for/image-retrieval-on-cub-200-2011)](https://paperswithcode.com/sota/image-retrieval-on-cub-200-2011?p=robust-and-decomposable-average-precision-for)
 
 ## Datasets
 
