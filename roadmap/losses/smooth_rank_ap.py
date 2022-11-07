@@ -48,7 +48,7 @@ def step_rank(tens, tau, rho, offset=None, delta=None, start=0.5, target=None, g
         tens[~target & pos_mask & ~margin_mask] = start + tau_sigmoid(tens[~target & pos_mask & ~margin_mask], tau_p).type(tens.dtype)
         if offset is None: 
             offset = tau_sigmoid(torch.tensor([delta], device=tens.device), tau_p).type(tens.dtype) + start
-        tens[~target & pos_mask & margin_mask] = rho * tens[~target & pos_mask & margin_mask - delta] + offset
+        tens[~target & pos_mask & margin_mask] = rho * (tens[~target & pos_mask & margin_mask] - delta) + offset
 
     tens[~target & neg_mask] = tau_sigmoid(tens[~target & neg_mask], tau_n).type(tens.dtype)
 
