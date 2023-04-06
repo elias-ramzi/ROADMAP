@@ -33,18 +33,18 @@ We use the following datasets for our submission
   The following command reproduce our results for Table 4.
 
   ```
-  CUDA_VISIBLE_DEVICES=0 python roadmap/single_experiment_runner.py \
-  'experience.experiment_name=sop_ROADMAP_${dataset.sampler.kwargs.batch_size}_sota' \
-  experience.seed=333 \
-  experience.max_iter=100 \
-  'experience.log_dir=${env:HOME}/experiments/ROADMAP' \
-  optimizer=sop \
-  model=resnet \
-  transform=sop_big \
-  dataset=sop \
-  dataset.sampler.kwargs.batch_size=128 \
-  dataset.sampler.kwargs.batches_per_super_pair=10 \
-  loss=roadmap
+CUDA_VISIBLE_DEVICES=0 python roadmap/single_experiment_runner.py \
+'experience.experiment_name=sop_ROADMAP_${dataset.sampler.kwargs.batch_size}_sota' \
+experience.seed=333 \
+experience.max_iter=100 \
+'experience.log_dir=experiments/ROADMAP' \
+optimizer=sop \
+model=resnet \
+transform=sop_big \
+dataset=sop \
+dataset.sampler.kwargs.batch_size=128 \
+dataset.sampler.kwargs.batches_per_super_pair=10 \
+loss=roadmap
   ```
 
   With the transformer backbone :
@@ -72,18 +72,17 @@ We use the following datasets for our submission
   For ROADMAP sota results:
 
   ```
-  CUDA_VISIBLE_DEVICES='0,1,2' python roadmap/single_experiment_runner.py \
-  --multirun \
-  'experience.experiment_name=inat_ROADMAP_${dataset.sampler.kwargs.batch_size}_sota' \
-  experience.seed=333 \
-  experience.max_iter=90 \
-  'experience.log_dir=${env:HOME}/experiments/ROADMAP' \
-  optimizer=inaturalist \
-  model=resnet \
-  transform=inaturalist \
-  dataset=inaturalist \
-  dataset.sampler.kwargs.batch_size=384 \
-  loss=roadmap_inat
+CUDA_VISIBLE_DEVICES='0,1,2' python roadmap/single_experiment_runner.py \
+'experience.experiment_name=inat_ROADMAP_${dataset.sampler.kwargs.batch_size}_sota' \
+experience.seed=333 \
+experience.max_iter=90 \
+'experience.log_dir=experiments/ROADMAP' \
+optimizer=inaturalist \
+model=resnet \
+transform=inaturalist \
+dataset=inaturalist \
+dataset.sampler.kwargs.batch_size=384 \
+loss=roadmap_inat
   ```
 </details>
 
