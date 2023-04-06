@@ -186,7 +186,7 @@ def get_accuracy_calculator(
     if with_AP:
         exclude.extend(['NMI', 'AMI'])
     else:
-        exclude.extend(['NMI', 'AMI', 'mean_average_precision'])
+        exclude.extend(['NMI', 'AMI', 'mean_average_precision', 'mean_average_precision_at_r'])
 
     if exclude_ranks:
         for r in exclude_ranks:
