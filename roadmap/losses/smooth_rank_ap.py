@@ -26,7 +26,7 @@ def tau_sigmoid(tensor, tau, target=None, general=None):
     return 1.0 / exponent
 
 
-def step_rank(tens, tau, rho, offset, delta=None, start=0.5, target=None, general=False):
+def step_rank(tens, tau, rho, offset=None, delta=None, start=0.5, target=None, general=False):
     target = target.squeeze()
     if general:
         target = target.view(1, -1).repeat(tens.size(0), 1)
@@ -46,7 +46,7 @@ def step_rank(tens, tau, rho, offset, delta=None, start=0.5, target=None, genera
     else:
         margin_mask = tens > delta
         tens[~target & pos_mask & ~margin_mask] = start + tau_sigmoid(tens[~target & pos_mask & ~margin_mask], tau_p).type(tens.dtype)
-        if offset is None:
+        if offset is None: 
             offset = tau_sigmoid(torch.tensor([delta], device=tens.device), tau_p).type(tens.dtype) + start
         tens[~target & pos_mask & margin_mask] = rho * (tens[~target & pos_mask & margin_mask] - delta) + offset
 
@@ -180,7 +180,7 @@ class SmoothAP(SmoothRankAP):
 
 class SupAP(SmoothRankAP):
 
-    def __init__(self, tau=0.01, rho=100, offset=1.44, delta=0.05, start=0.5, **kwargs):
+    def __init__(self, tau=0.01, rho=100, offset=None, delta=0.05, start=0.5, **kwargs):
         rank_approximation = partial(step_rank, tau=tau, rho=rho, offset=offset, delta=delta, start=start)
         super().__init__(rank_approximation, **kwargs)
         self.tau = tau
